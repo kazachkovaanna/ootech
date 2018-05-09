@@ -2,7 +2,6 @@ INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
 
 HEADERS += \
-    $$PWD/timecristmastree.h
+    $$PWD/dijekstra.h
 
-SOURCES += \
-    $$PWD/timecristmastree.cpp
+SOURCES +=

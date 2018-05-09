@@ -1,13 +1,13 @@
 INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
 
-FORMS += \
-    $$PWD/mainwindow.ui
+include("$$PWD/graphicsItem/graphicsItem.pri")
 
 HEADERS += \
-    $$PWD/mainwindow.h \
-    $$PWD/graphicvertex.h
+    $$PWD/mainwindow.h
 
 SOURCES += \
-    $$PWD/mainwindow.cpp \
-    $$PWD/graphicvertex.cpp
+    $$PWD/mainwindow.cpp
+
+FORMS += \
+    $$PWD/mainwindow.ui
