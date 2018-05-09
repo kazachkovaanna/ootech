@@ -2,7 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <exception>
+#include <QGraphicsScene>
+
+//#include <exception>
 
 namespace Ui {
 class MainWindow;
