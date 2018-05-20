@@ -5,10 +5,11 @@
 
 #include "graph.h"
 
-template <typename E, typename V> class Dijekstra;
+template <typename V, typename E>
+class Dijekstra;
 
-template <typename V, typename E> class iteratorD
-{
+template <typename V, typename E>
+class iteratorD {
     iteratorD(const Graph<V, E>& graph, Vertex<V>* startVertex, bool begin)
         : _graph(graph)
     {
@@ -24,6 +25,7 @@ public:
 
     iteratorD& operator++()
     {
+        // ПЕРЕДЕЛАТЬ
         if (_visionVertex.isEmpty())
             return *this;
 
@@ -32,8 +34,7 @@ public:
 
         Vertex<V>* vertex = v.value();
 
-        for (Vertex<V>* v : vertex)
-        {
+        for (Vertex<V>* v : vertex) {
             if (_visitedVertex.contains(v->getUuid(), v))
                 continue;
 
@@ -71,11 +72,11 @@ public:
 protected:
     QMap<QString, Vertex<V>*> _visitedVertex;
     QMap<QString, Vertex<V>*> _visionVertex;
-    Graph<V, E> _graph;
+    const Graph<V, E>& _graph;
 };
 
-template <typename E, typename V> class Dijekstra
-{
+template <typename E, typename V>
+class Dijekstra {
     static QMap<QString, E> cost(const Graph<E, V>& graph, Vertex<V>* startVertex)
     {
         QMap<QString, E> cost;
@@ -83,14 +84,12 @@ template <typename E, typename V> class Dijekstra
         iteratorD it(graph, startVertex, true);
         iteratorD end(graph, startVertex, false);
 
-        for (; it != end; ++it)
-        {
+        for (; it != end; ++it) {
             Vertex<V>* vertex = *it;
             typename Graph<V, E>::iteratorE itE = graph.begin(vertex);
             typename Graph<V, E>::iteratorE end = graph.end(vertex);
 
-            for (; itE != end; ++itE)
-            {
+            for (; itE != end; ++itE) {
                 E currentCost = cost.contains(vertex->getUuid()) ? cost.value(vertex->getUuid()) : 0;
                 E otherCost = cost.contains(itE->getTo()) ? cost.value(itE->getTo()) : currentCost + 1;
 

@@ -1,6 +1,6 @@
 QT += core gui widgets
 
-TARGET = ActivityDiagram
+TARGET = MultiGraph
 TEMPLATE = app
 
 include($$PWD/defines/christmasTree.pri)

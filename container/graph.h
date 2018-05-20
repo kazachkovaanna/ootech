@@ -1,15 +1,17 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
+#include <QDataStream>
 #include <QList>
 #include <QMap>
-#include <QSet>
+#include <QPair>
+#include <QStringList>
 #include <QUuid>
 
 template <typename V>
 class Vertex {
 public:
-    Vertex(const V& data)
+    Vertex(const V& data = V())
         : _data(data)
         , _uuid(QUuid::createUuid().toString())
     {
@@ -20,7 +22,10 @@ public:
     inline V getData() const { return _data; }
     void setData(const V& data) { _data = data; }
 
-    inline QString getUuid() const { return _uuid; }
+    inline const QString& getUuid() const { return _uuid; }
+
+    bool operator==(const Vertex<V>& v) { return _uuid == v._uuid && _data == v._data; }
+    bool operator!=(const Vertex<V>& v) { return _uuid != v._uuid || _data == v._data; }
 
 protected:
     V _data;
@@ -30,32 +35,32 @@ protected:
 template <typename E>
 class Edge {
 public:
-    Edge(const QString& from, const QString& to, const E& data)
-        : _from(from)
-        , _to(to)
-        , _data(data)
+    Edge(const E& data = E())
+        : _data(data)
+        , _uuid(QUuid::createUuid().toString())
     {
     }
 
     Edge(const Edge<E>& edge) = default;
 
-    inline QString getFrom() const { return _from; }
-    inline QString getTo() const { return _to; }
-
     inline E getData() const { return _data; }
     void setData(const E& data) { _data = data; }
 
+    inline const QString& getUuid() const { return _uuid; }
+
+    bool operator==(const Edge<E>& e) { return _uuid == e._uuid && _data == e._data; }
+    bool operator!=(const Edge<E>& e) { return _uuid != e._uuid || _data == e._data; }
+
 protected:
-    const QString _from;
-    const QString _to;
     E _data;
+    const QString _uuid;
 };
 
-template <typename E, typename V>
+template <typename V, typename E>
 class Graph {
 public:
     Graph() = default;
-    Graph(const Graph& graph) = default;
+    Graph(const Graph<V, E>& graph) = default;
 
     inline bool isEmpty() const { return _vertices.isEmpty(); }
     inline bool contains(Vertex<V>* vertex) const { return _vertices.contains(vertex); }
@@ -69,56 +74,58 @@ public:
         _vertices.insert(vertex->getUuid(), vertex);
     }
 
-    void add(Edge<E>* edge)
+    void add(Vertex<V>* from, Vertex<V>* to, Edge<E>* edge)
     {
         if (edge == nullptr)
             return;
 
-        if (!_vertices.contains(edge->getFrom()))
-            return;
-        if (!_vertices.contains(edge->getTo()))
+        if (from == nullptr || !_vertices.contains(from))
             return;
 
-        // TODO check contains existing edge
-        _edges.insertMulti(edge->getFrom(), edge);
-        _edges.insertMulti(edge->getTo(), edge);
+        if (to == nullptr || !_vertices.contains(to))
+            return;
+
+        if (_edges.contains(edge))
+            return;
+
+        _edges.insert(edge->getUuid(), edge);
+        _connections.insertMulti(from->getUuid(), edge->getUuid());
+        _connections.insertMulti(to->getUuid(), edge->getUuid());
     }
 
     // cascade remove
-    void remove(Vertex<V>* vertex)
+    QPair<Vertex<V>*, QList<Edge<E>*>> remove(const Vertex<V>* vertex)
     {
         _vertices.remove(vertex->getUuid());
-        QList<Edge<E>*> edges = _edges.values(vertex->getUuid());
-        for (Edge<E>* e : edges) {
-            remove(e);
+        QList<QString> edges = _edges.values(vertex->getUuid());
+        for (auto e : edges) {
+            remove(_edges.value(e));
         }
+
+        return qMakePair(vertex, edges);
     }
 
-    void remove(Edge<E>* edge)
+    Edge<E>* remove(Edge<E>* edge)
     {
-        QList<Edge<E>*> values = _edges.values(edge->getFrom());
-        _edges.remove(edge->getFrom());
-        values.removeOne(edge);
-        for (Edge<E>* e : values) {
-            _edges.insertMulti(edge->getFrom(), e);
-        }
+        QList<Vertex<V>*> vertices = _connections.keys(edge);
+        for (auto v : vertices) {
+            auto edges = _connections.values(v);
+            edges.removeOne(edge);
 
-        values = _edges.values(edge->getTo());
-        _edges.remove(edge->getFrom());
-        values.removeOne(edge);
-        for (Edge<E>* e : values) {
-            _edges.insertMulti(edge->getTo(), e);
+            _connections.remove(v);
+            for (auto e : edges) {
+                _connections.insertMulti(v, e);
+            }
         }
     }
-
-    // all vertex from graph are linked?
-    bool isDisconnected() const;
 
     class iteratorE {
         iteratorE(const QList<Edge<E>*>& edges, bool begin)
             : _edges(edges)
-            , _number(begin ? 0 : edges.size())
+            , _pointer(nullptr)
         {
+            if (begin && !edges.isEmpty())
+                _pointer = edges[0];
         }
 
     public:
@@ -126,54 +133,50 @@ public:
 
         iteratorE& operator++()
         {
-            if (_edges.size() < _number)
-                _number++;
+            int number = _edges.indexOf(_pointer);
+            if (number != -1 && _edges.last() != _pointer)
+                _pointer = _edges[number + 1];
+            else
+                _pointer = nullptr;
 
             return *this;
         }
 
-        iteratorE& operator++(const iteratorE&)
-        {
-            iteratorE currentIt(*this);
-
-            if (_edges.size() < _number)
-                _number++;
-
-            return currentIt;
-        }
-
         inline bool operator==(const iteratorE& it)
         {
-            return _number == it._number && _edges == it._edges;
+            return _pointer == it._pointer && _edges == it._edges;
         }
 
         inline bool operator!=(const iteratorE& it)
         {
-            return _number != it._number || _edges != it._edges;
+            return _pointer != it._pointer || _edges != it._edges;
         }
 
-        Edge<E>* operator*()
+        inline Edge<E>* operator*()
         {
-            return _edges.size() < _number ? _edges[_number] : nullptr;
+            return _pointer;
         }
 
-        Edge<E>* operator->()
+        inline Edge<E>* operator->()
         {
-            return _edges.size() < _number ? _edges[_number] : nullptr;
+            return _pointer;
         }
 
         friend class Graph<V, E>;
 
     protected:
-        QList<Edge<E>*> _edges;
-        int _number;
+        QList<Edge<E>*>& _edges;
+        Edge<E>* _pointer;
     };
 
     class iteratorV {
         iteratorV(const QList<Vertex<V>*>& vertices, bool begin)
             : _vertices(vertices)
-            , _number(begin ? 0 : vertices.size())
+            , _pointer(nullptr)
         {
+            if (begin && !vertices.isEmpty()) {
+                _pointer = _vertices[0];
+            }
         }
 
     public:
@@ -181,43 +184,51 @@ public:
 
         iteratorV& operator++()
         {
-            if (_vertices.size() < _number)
-                _number++;
+            int number = _vertices.indexOf(_pointer);
+            if (number != -1 || _vertices.last() < _pointer)
+                _pointer = _vertices[number + 1];
+            else
+                _pointer = nullptr;
+
             return *this;
         }
+
         iteratorV& operator++(const iteratorV&)
         {
             iteratorV current;
 
-            if (_vertices.size() < _number)
-                _number++;
+            int number = _vertices.indexOf(_pointer);
+            if (number != -1 || _vertices.last() < _pointer)
+                _pointer = _vertices[number + 1];
+            else
+                _pointer = nullptr;
 
             return current;
         }
 
         inline bool operator==(const iteratorV& it)
         {
-            return _number == it._number && _vertices == it._vertices;
+            return _pointer == it._pointer && _vertices == it._vertices;
         }
         inline bool operator!=(const iteratorV& it)
         {
-            return _number != it._number || _vertices != it._vertices;
+            return _pointer != it._pointer || _vertices != it._vertices;
         }
 
         inline Vertex<V>* operator*()
         {
-            return _vertices.size() < _number ? _vertices[_number] : nullptr;
+            return _pointer;
         }
         inline Vertex<V>* operator->()
         {
-            return _vertices.size() < _number ? _vertices[_number] : nullptr;
+            return _pointer;
         }
 
         friend class Graph<V, E>;
 
     protected:
-        QList<Vertex<V>*> _vertices;
-        int _number;
+        QList<Vertex<V>*>& _vertices;
+        Vertex<V>* _pointer;
     };
 
     iteratorV begin() { return iteratorV(_vertices.values(), true); }
@@ -225,57 +236,65 @@ public:
 
     iteratorE begin(Vertex<V>* vertex)
     {
-        // TODO
-        return iteratorE(_edges.values(vertex), true);
+        // TODO throw nullpointer
+        return iteratorE(_connections.values(vertex->getUuid()), true);
     }
 
     iteratorE end(Vertex<V>* vertex)
     {
-        // TODO
-        return iteratorE(_edges.values(vertex), false);
+        // TODO throw nullpointer
+        return iteratorE(_connections.values(vertex->getUuid()), false);
     }
 
-    friend QDataStream& operator>>(QDataStream&, Graph<E, V>&);
-    friend QDataStream& operator<<(QDataStream&, const Graph<E, V>&);
+    friend QDataStream& operator>>(QDataStream&, Graph<V, E>&);
+    friend QDataStream& operator<<(QDataStream&, const Graph<V, E>&);
 
 protected:
     QMap<QString, Vertex<V>*> _vertices;
     QMap<QString, Edge<E>*> _edges;
+    QMap<QString, QString> _connections;
 };
 
 template <typename E, typename V>
-QDataStream& operator>>(QDataStream& stream, Graph<E, V>& graph)
+QDataStream& operator<<(QDataStream& stream, const Graph<V, E>& graph)
 {
-    stream.setStatus(QDataStream::Ok);
+    stream.resetStatus();
 
-    stream >> graph._vertices;
-    if (stream.status() != QDataStream::Ok)
-        throw 2; // TODO deserialize exception
+    stream << graph._vertices;
+    stream << graph._edges;
+    stream << graph._connections;
 
-    stream >> graph._edges;
     if (stream.status() != QDataStream::Ok)
-        throw 2; // TODO deserialize exception
+        throw 2; // TODO serialize exception
 }
 
 template <typename E, typename V>
-QDataStream& operator<<(QDataStream& stream, const Graph<E, V>& graph)
+QDataStream& operator>>(QDataStream& stream, Graph<V, E>& graph)
 {
-    stream << graph._vertices;
+    // сбросить статут
+    stream.startTransaction();
 
-    if (stream.status() != QDataStream::Ok)
-        throw 1; // TODO throw serialize exception
+    stream >> graph._vertices;
+    stream >> graph._edges;
+    stream << graph._connections;
 
-    stream << graph._edges;
-    if (stream.status() != QDataStream::Ok)
-        throw 1; // TODO throw serialize exception
-
-    return stream;
+    if (!stream.commitTransaction())
+        throw 2; // TODO deserialize exception
 }
 
 template <typename V>
-QDataStream& operator<<(QDataStream& stream, const Vertex<V>& vertex)
+QDataStream& operator<<(QDataStream& stream, const Vertex<V>* vertex)
 {
-    stream << vertex._data;
+    if (nullptr == vertex) {
+        stream.setStatus(QDataStream::WriteFailed);
+        throw 0; // TODO nullptr
+    }
+
+    stream.resetStatus();
+
+    stream << vertex->getData();
+    stream << vertex->getUuid();
+
     if (stream.status() != QDataStream::Ok)
         throw 3; // TODO throw serialize exception;
 
@@ -283,31 +302,54 @@ QDataStream& operator<<(QDataStream& stream, const Vertex<V>& vertex)
 }
 
 template <typename V>
-QDataStream& operator>>(QDataStream& stream, Vertex<V>& vertex)
+QDataStream& operator>>(QDataStream& stream, Vertex<V>*& vertex)
 {
-    stream >> vertex._data;
+    stream.startTransaction();
+
+    if (nullptr == vertex)
+        vertex = new Vertex<V>;
+
+    stream >> vertex->_data;
+    stream >> vertex->_uuid;
+
+    if (!stream.commitTransaction())
+        throw 0; // TODO deserialize exc;
+
+    return stream;
+}
+
+template <typename E>
+QDataStream& operator<<(QDataStream& stream, const Edge<E>* edge)
+{
+    if (nullptr == edge) {
+        stream.setStatus(QDataStream::WriteFailed);
+        throw 0; // TODO nullptr
+    }
+
+    stream.resetStatus();
+
+    stream << edge->getData();
+    stream << edge->getUuid();
+
     if (stream.status() != QDataStream::Ok)
-        throw 4; // TODO throw serialize exception
+        throw 0; // TODO serialize exc
 
     return stream;
 }
 
 template <typename E>
-QDataStream& operator<<(QDataStream& stream, const Edge<E>& edge)
+QDataStream& operator>>(QDataStream& stream, Edge<E>*& edge)
 {
-    stream << edge._from;
-    stream << edge._to;
-    stream << edge._data;
+    stream.startTransaction();
 
-    return stream;
-}
+    if (nullptr == edge)
+        edge = new Edge<E>;
 
-template <typename E>
-QDataStream& operator>>(QDataStream& stream, Edge<E>& edge)
-{
-    stream >> edge._from;
-    stream >> edge._to;
-    stream >> edge._data;
+    stream >> edge->_data;
+    stream >> edge->_uuid;
+
+    if (!stream.commitTransaction())
+        throw 0; // TODO deserialize exc;
 
     return stream;
 }
