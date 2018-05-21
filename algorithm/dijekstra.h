@@ -1,7 +1,10 @@
 #ifndef DIJEKSTRA_H
 #define DIJEKSTRA_H
 
+#include <QMap>
+#include <QList>
 #include <QQueue>
+#include <QDebug>
 
 #include "graph.h"
 
@@ -10,96 +13,107 @@ class Dijekstra;
 
 template <typename V, typename E>
 class iteratorD {
-    iteratorD(const Graph<V, E>& graph, Vertex<V>* startVertex, bool begin)
+public:
+    iteratorD(const Graph<V, E>& graph, Vertex<V>* startVertex, bool begin = true)
         : _graph(graph)
+        , _current(nullptr)
     {
         if (!graph.contains(startVertex))
             throw "start vertex mast be contains in graph";
 
-        if (begin)
-            _visionVertex.append(startVertex->getUuid(), startVertex);
+        if (begin) {
+            _visionVertices.append(startVertex);
+            _current = startVertex;
+            _cost.insert(_current, E());
+        }
     }
 
-public:
     iteratorD(const iteratorD<V, E>& it) = default;
 
-    iteratorD& operator++()
+    iteratorD<V, E>& operator++()
     {
-        // ПЕРЕДЕЛАТЬ
-        if (_visionVertex.isEmpty())
+        _current = selectNextVisionVertex();
+        if (nullptr == _current)
             return *this;
 
-        auto v = _visionVertex.begin();
-        _visionVertex.erase(v);
+        _visionVertices.removeOne(_current);
+        _visitedVertices.append(_current);
 
-        Vertex<V>* vertex = v.value();
-
-        for (Vertex<V>* v : vertex) {
-            if (_visitedVertex.contains(v->getUuid(), v))
-                continue;
-
-            if (_visionVertex.contains(v->getUuid(), v))
-                continue;
-
-            _visionVertex.insertMilti(v->getUuid(), v);
-        }
+        updateVisionVertex();
 
         return *this;
     }
 
-    inline bool operator==(const iteratorD& it)
+    inline bool operator==(const iteratorD<V, E>& it)
     {
-        return _visionVertex == it._visionVertex && _visitedVertex == it._visitedVertex && _graph == it._graph;
+        return _current == it._current;
     }
 
-    inline bool operator!=(const iteratorD& it)
+    inline bool operator!=(const iteratorD<V, E>& it)
     {
-        return _visionVertex != it._visionVertex || _visitedVertex != it._visitedVertex || _graph != it._graph;
+        return _current != it._current;
     }
 
     Vertex<V>* operator*()
     {
-        return _visionVertex.begin().value();
+        return _current;
     }
 
     Vertex<V>* operator->()
     {
-        return _visionVertex.begin().value();
+        return _current;
     }
+
+    inline QMap<Vertex<V>*, E> cost() const
+    {
+        return _cost;
+    }
+
+    inline bool hasNext() const { return !_visionVertices.isEmpty(); }
 
     friend class Dijekstra<V, E>;
 
 protected:
-    QMap<QString, Vertex<V>*> _visitedVertex;
-    QMap<QString, Vertex<V>*> _visionVertex;
-    const Graph<V, E>& _graph;
-};
-
-template <typename E, typename V>
-class Dijekstra {
-    static QMap<QString, E> cost(const Graph<E, V>& graph, Vertex<V>* startVertex)
+    Vertex<V>* selectNextVisionVertex() const
     {
-        QMap<QString, E> cost;
+        if (_visionVertices.isEmpty())
+            return nullptr;
 
-        iteratorD it(graph, startVertex, true);
-        iteratorD end(graph, startVertex, false);
-
-        for (; it != end; ++it) {
-            Vertex<V>* vertex = *it;
-            typename Graph<V, E>::iteratorE itE = graph.begin(vertex);
-            typename Graph<V, E>::iteratorE end = graph.end(vertex);
-
-            for (; itE != end; ++itE) {
-                E currentCost = cost.contains(vertex->getUuid()) ? cost.value(vertex->getUuid()) : 0;
-                E otherCost = cost.contains(itE->getTo()) ? cost.value(itE->getTo()) : currentCost + 1;
-
-                if (currentCost > otherCost + itE->getData())
-                    cost.insert(vertex->getUuid(), otherCost + itE->getData());
-            }
+        Vertex<V>* current = _visionVertices[0];
+        for (Vertex<V>* v : _visionVertices) {
+            if (!_visitedVertices.contains(v) && _cost.value(v) < _cost.value(current))
+                current = v;
         }
 
-        return cost;
+        return current;
     }
+
+    void updateVisionVertex()
+    {
+        QList<Edge<E>*> edges = _graph.edgesByVertex(_current);
+
+        for (Edge<E>* e : edges) {
+            for (Vertex<V>* v : _graph.verticesByEdge(e)) {
+                if (_visitedVertices.contains(v))
+                    continue;
+
+                if (!_visionVertices.contains(v))
+                    _visionVertices.append(v);
+
+                E cost = _cost.value(_current) + e->getData();
+                if (!_cost.contains(v) || _cost.value(v) > cost) {
+                    _cost.insert(v, cost);
+                }
+            }
+        }
+    }
+
+protected:
+    QList<Vertex<V>*> _visitedVertices;
+    QList<Vertex<V>*> _visionVertices;
+    const Graph<V, E>& _graph;
+    Vertex<V>* _current;
+    QMap<Vertex<V>*, E> _cost;
 };
 
 #endif // DIJEKSTRA_H
