@@ -8,6 +8,8 @@
 #include <QStringList>
 #include <QUuid>
 
+#include "allocator.h"
+
 template <typename V>
 class Vertex {
 public:
@@ -26,6 +28,18 @@ public:
 
     bool operator==(const Vertex<V>& v) { return _uuid == v._uuid && _data == v._data; }
     bool operator!=(const Vertex<V>& v) { return _uuid != v._uuid || _data == v._data; }
+
+    void* operator new(size_t size) noexcept(false)
+    {
+        Q_UNUSED(size)
+
+        return GraphAllocator<Vertex<V>>::instance().allocate();
+    }
+
+    void operator delete(void* ptr) noexcept(false)
+    {
+        GraphAllocator<Vertex<V>>::instance().deallocate(reinterpret_cast<Vertex<V>*>(ptr));
+    }
 
 protected:
     V _data;
@@ -50,6 +64,18 @@ public:
 
     bool operator==(const Edge<E>& e) { return _uuid == e._uuid && _data == e._data; }
     bool operator!=(const Edge<E>& e) { return _uuid != e._uuid || _data == e._data; }
+
+    void* operator new(size_t size) noexcept(false)
+    {
+        Q_UNUSED(size)
+
+        return GraphAllocator<Edge<E>>::instance().allocate();
+    }
+
+    void operator delete(void* ptr) noexcept(false)
+    {
+        GraphAllocator<Edge<E>>::instance().deallocate(reinterpret_cast<Edge<E>*>(ptr));
+    }
 
 protected:
     E _data;
