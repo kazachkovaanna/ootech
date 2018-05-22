@@ -14,4 +14,4 @@ isEmpty(PROJECT_DEST_BIN_PATH) {
 
 QMAKE_LIBDIR += $$LIB_DIR $(QTDIR)/plugins/imageformats
 
-CONFIG += c++11
+CONFIG += c++11 pedantic

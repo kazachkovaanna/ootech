@@ -69,7 +69,7 @@ private:
     }
 
 private:
-    const int blockSize = 100;
+    const int blockSize = 1000;
 
     QList<T*> _memory;
     QList<T*> _free;

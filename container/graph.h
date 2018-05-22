@@ -9,6 +9,7 @@
 #include <QUuid>
 
 #include "allocator.h"
+#include "manipulator.h"
 
 template <typename V>
 class Vertex {
@@ -293,18 +294,10 @@ public:
         return edges;
     }
 
-    inline bool operator==(const Graph<V, E>& graph)
-    {
-        return true;
-    }
-
-    inline bool operator!=(const Graph<V, E>& graph)
-    {
-        return false;
-    }
-
-    friend QDataStream& operator>>(QDataStream&, Graph<V, E>&);
-    friend QDataStream& operator<<(QDataStream&, const Graph<V, E>&);
+    template<typename _V, typename _E>
+    friend QDataStream& operator>>(QDataStream& stream, Graph<_V, _E>& graph);
+    template<typename _V, typename _E>
+    friend QDataStream& operator<<(QDataStream& stream, const Graph<_V, _E>& graph);
 
 protected:
     QMap<QString, Vertex<V>*> _vertices;
@@ -315,9 +308,14 @@ protected:
 template <typename E, typename V>
 QDataStream& operator<<(QDataStream& stream, const Graph<V, E>& graph)
 {
+    stream << setVersion(QDataStream::Qt_5_10);
+
     stream.resetStatus();
 
     stream << graph._vertices;
+    if (QDataStream::Ok != stream.status()) {
+        throw 0;
+    }
     stream << graph._edges;
     stream << graph._connections;
 
@@ -328,15 +326,16 @@ QDataStream& operator<<(QDataStream& stream, const Graph<V, E>& graph)
 template <typename E, typename V>
 QDataStream& operator>>(QDataStream& stream, Graph<V, E>& graph)
 {
-    // сбросить статут
-//    stream.startTransaction();
+    stream << setVersion(QDataStream::Qt_5_10);
+
+    stream.startTransaction();
 
     stream >> graph._vertices;
     stream >> graph._edges;
     stream << graph._connections;
 
-//    if (!stream.commitTransaction())
-//        throw 2; // TODO deserialize exception
+    if (!stream.commitTransaction())
+        throw 2; // TODO deserialize exception
 }
 
 template <typename V>
@@ -361,7 +360,7 @@ QDataStream& operator<<(QDataStream& stream, const Vertex<V>* vertex)
 template <typename V>
 QDataStream& operator>>(QDataStream& stream, Vertex<V>*& vertex)
 {
-//    stream.startTransaction();
+    stream.startTransaction();
 
     if (nullptr == vertex)
         vertex = new Vertex<V>;
@@ -369,8 +368,8 @@ QDataStream& operator>>(QDataStream& stream, Vertex<V>*& vertex)
     stream >> vertex->_data;
     stream >> vertex->_uuid;
 
-//    if (!stream.commitTransaction())
-//        throw 0; // TODO deserialize exc;
+    if (!stream.commitTransaction())
+        throw 0; // TODO deserialize exc;
 
     return stream;
 }
@@ -397,7 +396,7 @@ QDataStream& operator<<(QDataStream& stream, const Edge<E>* edge)
 template <typename E>
 QDataStream& operator>>(QDataStream& stream, Edge<E>*& edge)
 {
-//    stream.startTransaction();
+    stream.startTransaction();
 
     if (nullptr == edge)
         edge = new Edge<E>;
@@ -405,8 +404,8 @@ QDataStream& operator>>(QDataStream& stream, Edge<E>*& edge)
     stream >> edge->_data;
     stream >> edge->_uuid;
 
-//    if (!stream.commitTransaction())
-//        throw 0; // TODO deserialize exc;
+    if (!stream.commitTransaction())
+        throw 0; // TODO deserialize exc;
 
     return stream;
 }

@@ -19,7 +19,7 @@ public:
         , _current(nullptr)
     {
         if (!graph.contains(startVertex))
-            throw "start vertex mast be contains in graph";
+            begin = false;
 
         if (begin) {
             _visionVertices.append(startVertex);
