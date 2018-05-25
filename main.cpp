@@ -70,7 +70,7 @@ int main(int argc, char** argv)
     in >> graph;
 
 
-    iteratorD<QString, int> dijekstra(graph, v1);
+    iteratorD<QString, int> dijekstra(graph, graph.getVertex(v1->getUuid()));
     while ((++dijekstra).hasNext());
     QMap<Vertex<QString>*, int> costs = dijekstra.cost();
 
