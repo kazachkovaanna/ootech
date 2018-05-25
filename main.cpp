@@ -7,6 +7,11 @@
 #include "graph.h"
 #include "dijekstra.h"
 
+using Sence::Vertex;
+using Sence::Edge;
+using Sence::Graph;
+using Sence::iteratorD;
+
 int main(int argc, char** argv)
 {
     QApplication app(argc, argv);

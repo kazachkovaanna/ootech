@@ -3,8 +3,14 @@
 
 #include <QList>
 
+namespace Sence {
+// clang-format off
+    template<typename T> class GraphAllocator;
+// clang-format on
+}
+
 template<typename T>
-class GraphAllocator {
+class Sence::GraphAllocator {
 private:
     GraphAllocator()
     {
@@ -20,9 +26,8 @@ private:
         _free.clear();
     }
 
-    GraphAllocator(const GraphAllocator&) = delete;
-
-    GraphAllocator& operator=(const GraphAllocator&) = delete;
+    GraphAllocator(const Sence::GraphAllocator<T>&) = delete;
+    GraphAllocator& operator=(const Sence::GraphAllocator<T>&) = delete;
 
 public:
     static GraphAllocator& instance()

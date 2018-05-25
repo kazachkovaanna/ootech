@@ -8,11 +8,14 @@
 
 #include "graph.h"
 
-template <typename V, typename E>
-class Dijekstra;
+namespace Sence {
+// clang-format off
+    template<typename V, typename E> class iteratorD;
+// clang-format on
+}
 
 template <typename V, typename E>
-class iteratorD {
+class Sence::iteratorD {
 public:
     iteratorD(const Graph<V, E>& graph, Vertex<V>* startVertex, bool begin = true)
         : _graph(graph)
@@ -70,8 +73,6 @@ public:
     }
 
     inline bool hasNext() const { return !_visionVertices.isEmpty(); }
-
-    friend class Dijekstra<V, E>;
 
 protected:
     Vertex<V>* selectNextVisionVertex() const

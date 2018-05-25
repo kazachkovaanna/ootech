@@ -11,8 +11,16 @@
 #include "allocator.h"
 #include "manipulator.h"
 
+namespace Sence {
+// clang-format off
+    template<typename V> class Vertex;
+    template<typename E> class Edge;
+    template<typename V, typename E> class Graph;
+// clang-format on
+}
+
 template <typename V>
-class Vertex {
+class Sence::Vertex {
 public:
     Vertex(const V& data = V())
         : _data(data)
@@ -48,7 +56,7 @@ protected:
 };
 
 template <typename E>
-class Edge {
+class Sence::Edge {
 public:
     Edge(const E& data = E())
         : _data(data)
@@ -84,7 +92,7 @@ protected:
 };
 
 template <typename V, typename E>
-class Graph {
+class Sence::Graph {
 public:
     Graph() = default;
     Graph(const Graph<V, E>& graph) = default;
@@ -306,16 +314,13 @@ protected:
 };
 
 template <typename E, typename V>
-QDataStream& operator<<(QDataStream& stream, const Graph<V, E>& graph)
+QDataStream& operator<<(QDataStream& stream, const Sence::Graph<V, E>& graph)
 {
     stream << setVersion(QDataStream::Qt_5_10);
 
     stream.resetStatus();
 
     stream << graph._vertices;
-    if (QDataStream::Ok != stream.status()) {
-        throw 0;
-    }
     stream << graph._edges;
     stream << graph._connections;
 
@@ -324,7 +329,7 @@ QDataStream& operator<<(QDataStream& stream, const Graph<V, E>& graph)
 }
 
 template <typename E, typename V>
-QDataStream& operator>>(QDataStream& stream, Graph<V, E>& graph)
+QDataStream& operator>>(QDataStream& stream, Sence::Graph<V, E>& graph)
 {
     stream << setVersion(QDataStream::Qt_5_10);
 
@@ -332,14 +337,14 @@ QDataStream& operator>>(QDataStream& stream, Graph<V, E>& graph)
 
     stream >> graph._vertices;
     stream >> graph._edges;
-    stream << graph._connections;
+    stream >> graph._connections;
 
     if (!stream.commitTransaction())
         throw 2; // TODO deserialize exception
 }
 
 template <typename V>
-QDataStream& operator<<(QDataStream& stream, const Vertex<V>* vertex)
+QDataStream& operator<<(QDataStream& stream, const Sence::Vertex<V>* vertex)
 {
     if (nullptr == vertex) {
         stream.setStatus(QDataStream::WriteFailed);
@@ -348,8 +353,8 @@ QDataStream& operator<<(QDataStream& stream, const Vertex<V>* vertex)
 
     stream.resetStatus();
 
-    stream << vertex->getData();
-    stream << vertex->getUuid();
+    stream << vertex->_data();
+    stream << vertex->_uuid();
 
     if (stream.status() != QDataStream::Ok)
         throw 3; // TODO throw serialize exception;
@@ -358,12 +363,11 @@ QDataStream& operator<<(QDataStream& stream, const Vertex<V>* vertex)
 }
 
 template <typename V>
-QDataStream& operator>>(QDataStream& stream, Vertex<V>*& vertex)
+QDataStream& operator>>(QDataStream& stream, Sence::Vertex<V>*& vertex)
 {
     stream.startTransaction();
 
-    if (nullptr == vertex)
-        vertex = new Vertex<V>;
+    vertex = new Sence::Vertex<V>;
 
     stream >> vertex->_data;
     stream >> vertex->_uuid;
@@ -375,7 +379,7 @@ QDataStream& operator>>(QDataStream& stream, Vertex<V>*& vertex)
 }
 
 template <typename E>
-QDataStream& operator<<(QDataStream& stream, const Edge<E>* edge)
+QDataStream& operator<<(QDataStream& stream, const Sence::Edge<E>* edge)
 {
     if (nullptr == edge) {
         stream.setStatus(QDataStream::WriteFailed);
@@ -384,8 +388,8 @@ QDataStream& operator<<(QDataStream& stream, const Edge<E>* edge)
 
     stream.resetStatus();
 
-    stream << edge->getData();
-    stream << edge->getUuid();
+    stream << edge->_data();
+    stream << edge->_uuid();
 
     if (stream.status() != QDataStream::Ok)
         throw 0; // TODO serialize exc
@@ -394,12 +398,11 @@ QDataStream& operator<<(QDataStream& stream, const Edge<E>* edge)
 }
 
 template <typename E>
-QDataStream& operator>>(QDataStream& stream, Edge<E>*& edge)
+QDataStream& operator>>(QDataStream& stream, Sence::Edge<E>*& edge)
 {
     stream.startTransaction();
 
-    if (nullptr == edge)
-        edge = new Edge<E>;
+    edge = new Sence::Edge<E>;
 
     stream >> edge->_data;
     stream >> edge->_uuid;
