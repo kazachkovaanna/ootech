@@ -62,9 +62,19 @@ int main(int argc, char** argv)
 
     graph.add(v5, v6, e_5_6);
 
+    QByteArray ba;
+    QDataStream out(&ba, QIODevice::WriteOnly);
+    out << graph;
+
+    QDataStream in(&ba, QIODevice::ReadOnly);
+    in >> graph;
+
+
     iteratorD<QString, int> dijekstra(graph, v1);
     while ((++dijekstra).hasNext());
     QMap<Vertex<QString>*, int> costs = dijekstra.cost();
+
+    qDebug() << costs.size();
 
     QMapIterator<Vertex<QString>*, int> it(costs);
 

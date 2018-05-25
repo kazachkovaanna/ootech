@@ -7,6 +7,7 @@
 #include <QPair>
 #include <QStringList>
 #include <QUuid>
+#include <QDebug>
 
 #include "allocator.h"
 #include "manipulator.h"
@@ -50,9 +51,14 @@ public:
         GraphAllocator<Vertex<V>>::instance().deallocate(reinterpret_cast<Vertex<V>*>(ptr));
     }
 
+    template<typename _V>
+    friend QDataStream& ::operator>>(QDataStream&, Vertex<_V>*&);
+    template<typename _V>
+    friend QDataStream& ::operator<<(QDataStream&, const Vertex<_V>*);
+
 protected:
     V _data;
-    const QString _uuid;
+    QString _uuid;
 };
 
 template <typename E>
@@ -86,9 +92,14 @@ public:
         GraphAllocator<Edge<E>>::instance().deallocate(reinterpret_cast<Edge<E>*>(ptr));
     }
 
+    template<typename _E>
+    friend QDataStream& ::operator>>(QDataStream&, Edge<_E>*&);
+    template<typename _E>
+    friend QDataStream& ::operator<<(QDataStream&, const Edge<_E>*);
+
 protected:
     E _data;
-    const QString _uuid;
+    QString _uuid;
 };
 
 template <typename V, typename E>
@@ -98,8 +109,8 @@ public:
     Graph(const Graph<V, E>& graph) = default;
 
     inline bool isEmpty() const { return _vertices.isEmpty(); }
-    inline bool contains(Vertex<V>* vertex) const { return _vertices.contains(vertex->getUuid()); }
-    inline bool contains(Edge<E>* edge) const { return _edges.contains(edge->getUuid()); }
+    inline bool contains(Vertex<V>* vertex) const { return _vertices.value(vertex->getUuid()) == vertex; }
+    inline bool contains(Edge<E>* edge) const { return _edges.value(edge->getUuid()) == edge; }
 
     void add(Vertex<V>* vertex)
     {
@@ -303,9 +314,9 @@ public:
     }
 
     template<typename _V, typename _E>
-    friend QDataStream& operator>>(QDataStream& stream, Graph<_V, _E>& graph);
+    friend QDataStream& ::operator>>(QDataStream&, Graph<_V, _E>&);
     template<typename _V, typename _E>
-    friend QDataStream& operator<<(QDataStream& stream, const Graph<_V, _E>& graph);
+    friend QDataStream& ::operator<<(QDataStream&, const Graph<_V, _E>&);
 
 protected:
     QMap<QString, Vertex<V>*> _vertices;
@@ -313,7 +324,7 @@ protected:
     QMap<QString, QString> _connections;        // { V, [E1, ...]}
 };
 
-template <typename E, typename V>
+template <typename V, typename E>
 QDataStream& operator<<(QDataStream& stream, const Sence::Graph<V, E>& graph)
 {
     stream << setVersion(QDataStream::Qt_5_10);
@@ -328,7 +339,7 @@ QDataStream& operator<<(QDataStream& stream, const Sence::Graph<V, E>& graph)
         throw 2; // TODO serialize exception
 }
 
-template <typename E, typename V>
+template <typename V, typename E>
 QDataStream& operator>>(QDataStream& stream, Sence::Graph<V, E>& graph)
 {
     stream << setVersion(QDataStream::Qt_5_10);
@@ -353,8 +364,8 @@ QDataStream& operator<<(QDataStream& stream, const Sence::Vertex<V>* vertex)
 
     stream.resetStatus();
 
-    stream << vertex->_data();
-    stream << vertex->_uuid();
+    stream << vertex->_data;
+    stream << vertex->_uuid;
 
     if (stream.status() != QDataStream::Ok)
         throw 3; // TODO throw serialize exception;
@@ -368,7 +379,6 @@ QDataStream& operator>>(QDataStream& stream, Sence::Vertex<V>*& vertex)
     stream.startTransaction();
 
     vertex = new Sence::Vertex<V>;
-
     stream >> vertex->_data;
     stream >> vertex->_uuid;
 
@@ -388,8 +398,8 @@ QDataStream& operator<<(QDataStream& stream, const Sence::Edge<E>* edge)
 
     stream.resetStatus();
 
-    stream << edge->_data();
-    stream << edge->_uuid();
+    stream << edge->_data;
+    stream << edge->_uuid;
 
     if (stream.status() != QDataStream::Ok)
         throw 0; // TODO serialize exc
@@ -403,7 +413,6 @@ QDataStream& operator>>(QDataStream& stream, Sence::Edge<E>*& edge)
     stream.startTransaction();
 
     edge = new Sence::Edge<E>;
-
     stream >> edge->_data;
     stream >> edge->_uuid;
 

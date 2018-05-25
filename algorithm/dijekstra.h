@@ -17,14 +17,11 @@ namespace Sence {
 template <typename V, typename E>
 class Sence::iteratorD {
 public:
-    iteratorD(const Graph<V, E>& graph, Vertex<V>* startVertex, bool begin = true)
+    iteratorD(const Graph<V, E>& graph, Vertex<V>* startVertex)
         : _graph(graph)
         , _current(nullptr)
     {
-        if (!graph.contains(startVertex))
-            begin = false;
-
-        if (begin) {
+        if (graph.contains(startVertex)) {
             _visionVertices.append(startVertex);
             _current = startVertex;
             _cost.insert(_current, E());

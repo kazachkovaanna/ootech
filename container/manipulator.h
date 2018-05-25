@@ -10,7 +10,7 @@ class DataStreamManipulator
     typedef QDataStream& (*SMF)(QDataStream&, T);
 
 public:
-    DataStreamManipulator(SMF func, int arg) noexcept(true)
+    DataStreamManipulator(SMF func, T arg) noexcept(true)
         : _funcPtr(func)
         , _arg(arg)
     {
@@ -25,7 +25,7 @@ public:
 
 private:
     SMF _funcPtr;
-    int _arg;
+    T _arg;
 };
 
 template<typename T>
