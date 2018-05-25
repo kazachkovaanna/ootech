@@ -3,5 +3,3 @@ DEPENDPATH += $$PWD
 
 HEADERS += \
     $$PWD/dijekstra.h
-
-SOURCES +=
