@@ -5,42 +5,65 @@
 #include <QString>
 #include <QDebug>
 
-class RuntimeException : protected std::runtime_error
-{
+class Exception {
 public:
-    RuntimeException(const QString& message);
+    Exception(const QString& message) noexcept
+        : _message(message)
+    {
+    }
 
-    inline QString toString() const { return what(); }
+    inline const QString& toString() const noexcept { return _message; }
+
+protected:
+    QString _message;
 };
 
-class SerializeException : public RuntimeException
+class SerializeException : public Exception
 {
 public:
-    SerializeException(const QString& message)
-        : RuntimeException(message)
+    inline SerializeException(const QString& message) noexcept
+        : Exception(message)
     {
     }
 };
 
-class DeserializeException : public RuntimeException
+class DeserializeException : public Exception
 {
 public:
-    DeserializeException(const QString& message)
-        : RuntimeException(message)
+    inline DeserializeException(const QString& message) noexcept
+        : Exception(message)
     {
     }
 };
 
-class AllocateException : public RuntimeException
+class AllocateException : public Exception
 {
 public:
-    AllocateException();
+    inline AllocateException(size_t size, const QString& message) noexcept
+        : Exception(message)
+        , _size(size)
+    {
+    }
+
+    inline size_t getSize() const noexcept { return _size; }
+
+protected:
+    size_t _size;
 };
 
-class DeallocateException
+class DeallocateException : Exception
 {
 public:
-    DeallocateException();
+    inline DeallocateException(const void* ptr, const QString& message) noexcept
+        : Exception(message)
+        , _ptr(ptr)
+    {
+    }
+
+    inline const void* getPtr() const noexcept { return _ptr; }
+
+protected:
+    const void* _ptr;
 };
 
 #endif // GRAPHEXCEPTION_H

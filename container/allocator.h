@@ -3,6 +3,8 @@
 
 #include <QList>
 
+#include "graphexception.h"
+
 namespace Sence {
 // clang-format off
     template<typename T> class GraphAllocator;
@@ -12,11 +14,11 @@ namespace Sence {
 template<typename T>
 class Sence::GraphAllocator {
 private:
-    GraphAllocator()
+    GraphAllocator() noexcept
     {
     }
 
-    ~GraphAllocator()
+    ~GraphAllocator() noexcept
     {
         for (T* block : _memory) {
             delete[] block;
@@ -30,7 +32,7 @@ private:
     GraphAllocator& operator=(const Sence::GraphAllocator<T>&) = delete;
 
 public:
-    static GraphAllocator& instance()
+    static GraphAllocator& instance() noexcept
     {
         static GraphAllocator instance;
 
@@ -56,20 +58,23 @@ public:
             }
         }
 
-        throw 0;
+        throw new DeallocateException(node, QString("Can't deallocate the node: [%1].").arg(node->getUuid()));
     }
 
 private:
     void reserveMemory() noexcept(false)
     {
-        T* block = new T[blockSize];
-        if (nullptr == block)
-            throw 0;
+        try {
+            T* block = new T[blockSize];
 
-        _memory.append(block);
+            _memory.append(block);
 
-        for (int i = 0; i < blockSize; i++) {
-            _free.append(block + i);
+            for (int i = 0; i < blockSize; i++) {
+                _free.append(block + i);
+            }
+        } catch (std::bad_alloc& e) {
+            qDebug() << Q_FUNC_INFO << e.what();
+            throw new AllocateException(sizeof(T), QString("Can't allocate"));
         }
     }
 

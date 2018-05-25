@@ -23,38 +23,38 @@ namespace Sence {
 template <typename V>
 class Sence::Vertex {
 public:
-    Vertex(const V& data = V())
+    Vertex(const V& data = V()) noexcept
         : _data(data)
         , _uuid(QUuid::createUuid().toString())
     {
     }
 
-    Vertex(const Vertex<V>& vertex) = default;
+    Vertex(const Vertex<V>& vertex) noexcept = default;
 
-    inline V getData() const { return _data; }
-    void setData(const V& data) { _data = data; }
+    inline V getData() const noexcept { return _data; }
+    void setData(const V& data) noexcept { _data = data; }
 
-    inline const QString& getUuid() const { return _uuid; }
+    inline const QString& getUuid() const noexcept { return _uuid; }
 
-    bool operator==(const Vertex<V>& v) { return _uuid == v._uuid && _data == v._data; }
-    bool operator!=(const Vertex<V>& v) { return _uuid != v._uuid || _data == v._data; }
+    bool operator==(const Vertex<V>& v) const noexcept { return _uuid == v._uuid && _data == v._data; }
+    bool operator!=(const Vertex<V>& v) const noexcept { return _uuid != v._uuid || _data == v._data; }
 
-    void* operator new(size_t size) noexcept(false)
+    void* operator new(size_t size) const noexcept(false)
     {
         Q_UNUSED(size)
 
         return GraphAllocator<Vertex<V>>::instance().allocate();
     }
 
-    void operator delete(void* ptr) noexcept(false)
+    void operator delete(void* ptr) const noexcept(false)
     {
         GraphAllocator<Vertex<V>>::instance().deallocate(reinterpret_cast<Vertex<V>*>(ptr));
     }
 
     template<typename _V>
-    friend QDataStream& ::operator>>(QDataStream&, Vertex<_V>*&);
+    friend QDataStream& ::operator>>(QDataStream&, Vertex<_V>*&) noexcept;
     template<typename _V>
-    friend QDataStream& ::operator<<(QDataStream&, const Vertex<_V>*);
+    friend QDataStream& ::operator<<(QDataStream&, const Vertex<_V>*) noexcept;
 
 protected:
     V _data;
@@ -64,38 +64,38 @@ protected:
 template <typename E>
 class Sence::Edge {
 public:
-    Edge(const E& data = E())
+    Edge(const E& data = E()) noexcept
         : _data(data)
         , _uuid(QUuid::createUuid().toString())
     {
     }
 
-    Edge(const Edge<E>& edge) = default;
+    Edge(const Edge<E>& edge) noexcept = default;
 
-    inline E getData() const { return _data; }
-    void setData(const E& data) { _data = data; }
+    inline E getData() const noexcept { return _data; }
+    void setData(const E& data) noexcept { _data = data; }
 
-    inline const QString& getUuid() const { return _uuid; }
+    inline const QString& getUuid() const noexcept { return _uuid; }
 
-    bool operator==(const Edge<E>& e) { return _uuid == e._uuid && _data == e._data; }
-    bool operator!=(const Edge<E>& e) { return _uuid != e._uuid || _data == e._data; }
+    bool operator==(const Edge<E>& e) const noexcept { return _uuid == e._uuid && _data == e._data; }
+    bool operator!=(const Edge<E>& e) const noexcept { return _uuid != e._uuid || _data == e._data; }
 
-    void* operator new(size_t size) noexcept(false)
+    void* operator new(size_t size) const noexcept(false)
     {
         Q_UNUSED(size)
 
         return GraphAllocator<Edge<E>>::instance().allocate();
     }
 
-    void operator delete(void* ptr) noexcept(false)
+    void operator delete(void* ptr) const noexcept(false)
     {
         GraphAllocator<Edge<E>>::instance().deallocate(reinterpret_cast<Edge<E>*>(ptr));
     }
 
     template<typename _E>
-    friend QDataStream& ::operator>>(QDataStream&, Edge<_E>*&);
+    friend QDataStream& ::operator>>(QDataStream&, Edge<_E>*&) noexcept;
     template<typename _E>
-    friend QDataStream& ::operator<<(QDataStream&, const Edge<_E>*);
+    friend QDataStream& ::operator<<(QDataStream&, const Edge<_E>*) noexcept;
 
 protected:
     E _data;
@@ -105,14 +105,14 @@ protected:
 template <typename V, typename E>
 class Sence::Graph {
 public:
-    Graph() = default;
-    Graph(const Graph<V, E>& graph) = default;
+    Graph() noexcept = default;
+    Graph(const Graph<V, E>& graph) noexcept = default;
 
-    inline bool isEmpty() const { return _vertices.isEmpty(); }
-    inline bool contains(Vertex<V>* vertex) const { return _vertices.value(vertex->getUuid()) == vertex; }
-    inline bool contains(Edge<E>* edge) const { return _edges.value(edge->getUuid()) == edge; }
+    inline bool isEmpty() const noexcept { return _vertices.isEmpty(); }
+    inline bool contains(Vertex<V>* vertex) const noexcept { return _vertices.value(vertex->getUuid()) == vertex; }
+    inline bool contains(Edge<E>* edge) const noexcept { return _edges.value(edge->getUuid()) == edge; }
 
-    void add(Vertex<V>* vertex)
+    void add(Vertex<V>* vertex) noexcept
     {
         if (vertex == nullptr)
             return;
@@ -120,7 +120,7 @@ public:
         _vertices.insert(vertex->getUuid(), vertex);
     }
 
-    void add(Vertex<V>* from, Vertex<V>* to, Edge<E>* edge)
+    void add(Vertex<V>* from, Vertex<V>* to, Edge<E>* edge) noexcept
     {
         if (edge == nullptr)
             return;
@@ -140,7 +140,7 @@ public:
     }
 
     // cascade remove
-    QPair<Vertex<V>*, QList<Edge<E>*>> remove(const Vertex<V>* vertex)
+    QPair<Vertex<V>*, QList<Edge<E>*>> remove(const Vertex<V>* vertex) noexcept
     {
         _vertices.remove(vertex->getUuid());
         QList<QString> edges = _edges.values(vertex->getUuid());
@@ -151,7 +151,7 @@ public:
         return qMakePair(vertex, edges);
     }
 
-    Edge<E>* remove(Edge<E>* edge)
+    Edge<E>* remove(Edge<E>* edge) noexcept
     {
         QList<Vertex<V>*> vertices = _connections.keys(edge);
         for (auto v : vertices) {
@@ -166,7 +166,7 @@ public:
     }
 
     class iteratorE {
-        iteratorE(const QList<Edge<E>*>& edges, bool begin)
+        iteratorE(const QList<Edge<E>*>& edges, bool begin) noexcept
             : _edges(edges)
             , _pointer(nullptr)
         {
@@ -175,9 +175,9 @@ public:
         }
 
     public:
-        iteratorE(const iteratorE& it) = default;
+        iteratorE(const iteratorE& it) noexcept = default;
 
-        iteratorE& operator++()
+        iteratorE& operator++() noexcept
         {
             int number = _edges.indexOf(_pointer);
             if (number != -1 && _edges.last() != _pointer)
@@ -188,22 +188,22 @@ public:
             return *this;
         }
 
-        inline bool operator==(const iteratorE& it)
+        inline bool operator==(const iteratorE& it) noexcept
         {
             return _pointer == it._pointer && _edges == it._edges;
         }
 
-        inline bool operator!=(const iteratorE& it)
+        inline bool operator!=(const iteratorE& it) noexcept
         {
             return _pointer != it._pointer || _edges != it._edges;
         }
 
-        inline Edge<E>* operator*()
+        inline Edge<E>* operator*() noexcept
         {
             return _pointer;
         }
 
-        inline Edge<E>* operator->()
+        inline Edge<E>* operator->() noexcept
         {
             return _pointer;
         }
@@ -216,7 +216,7 @@ public:
     };
 
     class iteratorV {
-        iteratorV(const QList<Vertex<V>*>& vertices, bool begin)
+        iteratorV(const QList<Vertex<V>*>& vertices, bool begin) noexcept
             : _vertices(vertices)
             , _pointer(nullptr)
         {
@@ -226,9 +226,9 @@ public:
         }
 
     public:
-        iteratorV(const iteratorV& it) = default;
+        iteratorV(const iteratorV& it) noexcept = default;
 
-        iteratorV& operator++()
+        iteratorV& operator++() noexcept
         {
             int number = _vertices.indexOf(_pointer);
             if (number != -1 || _vertices.last() < _pointer)
@@ -239,7 +239,7 @@ public:
             return *this;
         }
 
-        iteratorV& operator++(const iteratorV&)
+        iteratorV& operator++(const iteratorV&) noexcept
         {
             iteratorV current;
 
@@ -252,20 +252,20 @@ public:
             return current;
         }
 
-        inline bool operator==(const iteratorV& it)
+        inline bool operator==(const iteratorV& it) noexcept
         {
             return _pointer == it._pointer && _vertices == it._vertices;
         }
-        inline bool operator!=(const iteratorV& it)
+        inline bool operator!=(const iteratorV& it) noexcept
         {
             return _pointer != it._pointer || _vertices != it._vertices;
         }
 
-        inline Vertex<V>* operator*()
+        inline Vertex<V>* operator*() noexcept
         {
             return _pointer;
         }
-        inline Vertex<V>* operator->()
+        inline Vertex<V>* operator->() noexcept
         {
             return _pointer;
         }
@@ -277,22 +277,22 @@ public:
         Vertex<V>* _pointer;
     };
 
-    iteratorV begin() { return iteratorV(_vertices.values(), true); }
-    iteratorV end() { return iteratorV(_vertices.values(), false); }
+    iteratorV begin() noexcept { return iteratorV(_vertices.values(), true); }
+    iteratorV end() noexcept { return iteratorV(_vertices.values(), false); }
 
-    iteratorE begin(Vertex<V>* vertex)
+    iteratorE begin(Vertex<V>* vertex) noexcept
     {
         // TODO throw nullpointer
         return iteratorE(_connections.values(vertex->getUuid()), true);
     }
 
-    iteratorE end(Vertex<V>* vertex)
+    iteratorE end(Vertex<V>* vertex) noexcept
     {
         // TODO throw nullpointer
         return iteratorE(_connections.values(vertex->getUuid()), false);
     }
 
-    QList<Vertex<V>*> verticesByEdge(Edge<E>* edge) const
+    QList<Vertex<V>*> verticesByEdge(Edge<E>* edge) const noexcept
     {
         QList<Vertex<V>*> vertices;
         for (const QString& v : _connections.keys(edge->getUuid())) {
@@ -302,7 +302,7 @@ public:
         return vertices;
     }
 
-    inline QList<Edge<E>*> edgesByVertex(Vertex<V>* vertex) const
+    inline QList<Edge<E>*> edgesByVertex(Vertex<V>* vertex) const noexcept
     {
         QList<Edge<E>*> edges;
 
@@ -314,9 +314,9 @@ public:
     }
 
     template<typename _V, typename _E>
-    friend QDataStream& ::operator>>(QDataStream&, Graph<_V, _E>&);
+    friend QDataStream& ::operator>>(QDataStream&, Graph<_V, _E>&) noexcept;
     template<typename _V, typename _E>
-    friend QDataStream& ::operator<<(QDataStream&, const Graph<_V, _E>&);
+    friend QDataStream& ::operator<<(QDataStream&, const Graph<_V, _E>&) noexcept;
 
 protected:
     QMap<QString, Vertex<V>*> _vertices;
@@ -325,7 +325,7 @@ protected:
 };
 
 template <typename V, typename E>
-QDataStream& operator<<(QDataStream& stream, const Sence::Graph<V, E>& graph)
+QDataStream& operator<<(QDataStream& stream, const Sence::Graph<V, E>& graph) noexcept
 {
     stream << setVersion(QDataStream::Qt_5_10);
 
@@ -340,7 +340,7 @@ QDataStream& operator<<(QDataStream& stream, const Sence::Graph<V, E>& graph)
 }
 
 template <typename V, typename E>
-QDataStream& operator>>(QDataStream& stream, Sence::Graph<V, E>& graph)
+QDataStream& operator>>(QDataStream& stream, Sence::Graph<V, E>& graph) noexcept
 {
     stream << setVersion(QDataStream::Qt_5_10);
 
@@ -355,7 +355,7 @@ QDataStream& operator>>(QDataStream& stream, Sence::Graph<V, E>& graph)
 }
 
 template <typename V>
-QDataStream& operator<<(QDataStream& stream, const Sence::Vertex<V>* vertex)
+QDataStream& operator<<(QDataStream& stream, const Sence::Vertex<V>* vertex) noexcept
 {
     if (nullptr == vertex) {
         stream.setStatus(QDataStream::WriteFailed);
@@ -374,7 +374,7 @@ QDataStream& operator<<(QDataStream& stream, const Sence::Vertex<V>* vertex)
 }
 
 template <typename V>
-QDataStream& operator>>(QDataStream& stream, Sence::Vertex<V>*& vertex)
+QDataStream& operator>>(QDataStream& stream, Sence::Vertex<V>*& vertex) noexcept
 {
     stream.startTransaction();
 
@@ -389,7 +389,7 @@ QDataStream& operator>>(QDataStream& stream, Sence::Vertex<V>*& vertex)
 }
 
 template <typename E>
-QDataStream& operator<<(QDataStream& stream, const Sence::Edge<E>* edge)
+QDataStream& operator<<(QDataStream& stream, const Sence::Edge<E>* edge) noexcept
 {
     if (nullptr == edge) {
         stream.setStatus(QDataStream::WriteFailed);
@@ -408,7 +408,7 @@ QDataStream& operator<<(QDataStream& stream, const Sence::Edge<E>* edge)
 }
 
 template <typename E>
-QDataStream& operator>>(QDataStream& stream, Sence::Edge<E>*& edge)
+QDataStream& operator>>(QDataStream& stream, Sence::Edge<E>*& edge) noexcept
 {
     stream.startTransaction();
 
