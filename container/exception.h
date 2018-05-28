@@ -1,11 +1,20 @@
 #ifndef GRAPHEXCEPTION_H
 #define GRAPHEXCEPTION_H
 
-#include <stdexcept>
-#include <QString>
 #include <QDebug>
+#include <QString>
 
-class Exception {
+// clang-format off
+namespace Sence {
+    class Exception;
+    class SerializeException;
+    class DeserializeException;
+    class AllocateException;
+    class DeallocateException;
+}
+// clang-format on
+
+class Sence::Exception {
 public:
     Exception(const QString& message) noexcept
         : _message(message)
@@ -18,8 +27,7 @@ protected:
     QString _message;
 };
 
-class SerializeException : public Exception
-{
+class Sence::SerializeException : public Exception {
 public:
     inline SerializeException(const QString& message) noexcept
         : Exception(message)
@@ -27,8 +35,7 @@ public:
     }
 };
 
-class DeserializeException : public Exception
-{
+class Sence::DeserializeException : public Exception {
 public:
     inline DeserializeException(const QString& message) noexcept
         : Exception(message)
@@ -36,8 +43,7 @@ public:
     }
 };
 
-class AllocateException : public Exception
-{
+class Sence::AllocateException : public Exception {
 public:
     inline AllocateException(size_t size, const QString& message) noexcept
         : Exception(message)
@@ -51,8 +57,7 @@ protected:
     size_t _size;
 };
 
-class DeallocateException : Exception
-{
+class Sence::DeallocateException : Exception {
 public:
     inline DeallocateException(const void* ptr, const QString& message) noexcept
         : Exception(message)

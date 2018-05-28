@@ -1,15 +1,13 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-#include <QDataStream>
-#include <QList>
+#include <QDebug>
 #include <QMap>
 #include <QPair>
-#include <QStringList>
 #include <QUuid>
-#include <QDebug>
 
 #include "allocator.h"
+#include "exception.h"
 #include "manipulator.h"
 
 namespace Sence {
@@ -46,15 +44,15 @@ public:
         return GraphAllocator<Vertex<V>>::instance().allocate();
     }
 
-    void operator delete(void* ptr)noexcept(false)
+    void operator delete(void* ptr) noexcept(false)
     {
         GraphAllocator<Vertex<V>>::instance().deallocate(reinterpret_cast<Vertex<V>*>(ptr));
     }
 
-    template<typename _V>
-    friend QDataStream& ::operator>>(QDataStream&, Vertex<_V>*&) noexcept;
-    template<typename _V>
-    friend QDataStream& ::operator<<(QDataStream&, const Vertex<_V>*) noexcept;
+    template <typename _V>
+    friend QDataStream& ::operator>>(QDataStream&, Vertex<_V>*&) noexcept(false);
+    template <typename _V>
+    friend QDataStream& ::operator<<(QDataStream&, const Vertex<_V>*) noexcept(false);
 
 protected:
     V _data;
@@ -92,10 +90,10 @@ public:
         GraphAllocator<Edge<E>>::instance().deallocate(reinterpret_cast<Edge<E>*>(ptr));
     }
 
-    template<typename _E>
-    friend QDataStream& ::operator>>(QDataStream&, Edge<_E>*&) noexcept;
-    template<typename _E>
-    friend QDataStream& ::operator<<(QDataStream&, const Edge<_E>*) noexcept;
+    template <typename _E>
+    friend QDataStream& ::operator>>(QDataStream&, Edge<_E>*&) noexcept(false);
+    template <typename _E>
+    friend QDataStream& ::operator<<(QDataStream&, const Edge<_E>*) noexcept(false);
 
 protected:
     E _data;
@@ -165,8 +163,8 @@ public:
         }
     }
 
-    inline Vertex<V>* getVertex(const QString& uuid) { return _vertices.value(uuid);}
-    inline Vertex<V>* getEdge(const QString& uuid) { return _edges.value(uuid);}
+    inline Vertex<V>* getVertex(const QString& uuid) { return _vertices.value(uuid); }
+    inline Vertex<V>* getEdge(const QString& uuid) { return _edges.value(uuid); }
 
     class iteratorE {
         iteratorE(const QList<Edge<E>*>& edges, bool begin) noexcept
@@ -316,19 +314,19 @@ public:
         return edges;
     }
 
-    template<typename _V, typename _E>
-    friend QDataStream& ::operator>>(QDataStream&, Graph<_V, _E>&) noexcept;
-    template<typename _V, typename _E>
-    friend QDataStream& ::operator<<(QDataStream&, const Graph<_V, _E>&) noexcept;
+    template <typename _V, typename _E>
+    friend QDataStream& ::operator>>(QDataStream&, Graph<_V, _E>&) noexcept(false);
+    template <typename _V, typename _E>
+    friend QDataStream& ::operator<<(QDataStream&, const Graph<_V, _E>&) noexcept(false);
 
 protected:
     QMap<QString, Vertex<V>*> _vertices;
     QMap<QString, Edge<E>*> _edges;
-    QMap<QString, QString> _connections;        // { V, [E1, ...]}
+    QMap<QString, QString> _connections; // { V, [E1, ...]}
 };
 
 template <typename V, typename E>
-QDataStream& operator<<(QDataStream& stream, const Sence::Graph<V, E>& graph) noexcept
+QDataStream& operator<<(QDataStream& stream, const Sence::Graph<V, E>& graph) noexcept(false)
 {
     stream << setVersion(QDataStream::Qt_5_10);
 
@@ -338,12 +336,17 @@ QDataStream& operator<<(QDataStream& stream, const Sence::Graph<V, E>& graph) no
     stream << graph._edges;
     stream << graph._connections;
 
-    if (stream.status() != QDataStream::Ok)
-        throw 2; // TODO serialize exception
+    if (stream.status() != QDataStream::Ok) {
+        QString message("Can't setialize the Graph.");
+        qDebug() << Q_FUNC_INFO << message;
+        throw Sence::SerializeException(message);
+    }
+
+    return stream;
 }
 
 template <typename V, typename E>
-QDataStream& operator>>(QDataStream& stream, Sence::Graph<V, E>& graph) noexcept
+QDataStream& operator>>(QDataStream& stream, Sence::Graph<V, E>& graph) noexcept(false)
 {
     stream << setVersion(QDataStream::Qt_5_10);
 
@@ -353,16 +356,24 @@ QDataStream& operator>>(QDataStream& stream, Sence::Graph<V, E>& graph) noexcept
     stream >> graph._edges;
     stream >> graph._connections;
 
-    if (!stream.commitTransaction())
-        throw 2; // TODO deserialize exception
+    if (!stream.commitTransaction()) {
+        QString message("Can't desetialize the Graph.");
+        qDebug() << Q_FUNC_INFO << message;
+        throw Sence::DeserializeException(message);
+    }
+
+    return stream;
 }
 
 template <typename V>
-QDataStream& operator<<(QDataStream& stream, const Sence::Vertex<V>* vertex) noexcept
+QDataStream& operator<<(QDataStream& stream, const Sence::Vertex<V>* vertex) noexcept(false)
 {
     if (nullptr == vertex) {
         stream.setStatus(QDataStream::WriteFailed);
-        throw 0; // TODO nullptr
+
+        QString message("Can't setialize the Vertex. Unexpected value (nullptr).");
+        qDebug() << Q_FUNC_INFO << message;
+        throw Sence::SerializeException(message);
     }
 
     stream.resetStatus();
@@ -370,14 +381,18 @@ QDataStream& operator<<(QDataStream& stream, const Sence::Vertex<V>* vertex) noe
     stream << vertex->_data;
     stream << vertex->_uuid;
 
-    if (stream.status() != QDataStream::Ok)
-        throw 3; // TODO throw serialize exception;
+    if (stream.status() != QDataStream::Ok) {
+        QString message("Can't setialize the Vertex.");
+
+        qDebug() << Q_FUNC_INFO << message;
+        throw Sence::SerializeException(message);
+    }
 
     return stream;
 }
 
 template <typename V>
-QDataStream& operator>>(QDataStream& stream, Sence::Vertex<V>*& vertex) noexcept
+QDataStream& operator>>(QDataStream& stream, Sence::Vertex<V>*& vertex) noexcept(false)
 {
     stream.startTransaction();
 
@@ -385,18 +400,24 @@ QDataStream& operator>>(QDataStream& stream, Sence::Vertex<V>*& vertex) noexcept
     stream >> vertex->_data;
     stream >> vertex->_uuid;
 
-    if (!stream.commitTransaction())
-        throw 0; // TODO deserialize exc;
+    if (!stream.commitTransaction()) {
+        QString message("Can't desetialize the Vertex.");
+        qDebug() << Q_FUNC_INFO << message;
+        throw Sence::DeserializeException(message);
+    }
 
     return stream;
 }
 
 template <typename E>
-QDataStream& operator<<(QDataStream& stream, const Sence::Edge<E>* edge) noexcept
+QDataStream& operator<<(QDataStream& stream, const Sence::Edge<E>* edge) noexcept(false)
 {
     if (nullptr == edge) {
         stream.setStatus(QDataStream::WriteFailed);
-        throw 0; // TODO nullptr
+
+        QString message("Can't setialize the Edge. Unexpected value (nullptr).");
+        qDebug() << Q_FUNC_INFO << message;
+        throw Sence::SerializeException(message);
     }
 
     stream.resetStatus();
@@ -404,14 +425,17 @@ QDataStream& operator<<(QDataStream& stream, const Sence::Edge<E>* edge) noexcep
     stream << edge->_data;
     stream << edge->_uuid;
 
-    if (stream.status() != QDataStream::Ok)
-        throw 0; // TODO serialize exc
+    if (stream.status() != QDataStream::Ok) {
+        QString message("Can't setialize the Edge.");
+        qDebug() << Q_FUNC_INFO << message;
+        throw Sence::SerializeException(message);
+    }
 
     return stream;
 }
 
 template <typename E>
-QDataStream& operator>>(QDataStream& stream, Sence::Edge<E>*& edge) noexcept
+QDataStream& operator>>(QDataStream& stream, Sence::Edge<E>*& edge) noexcept(false)
 {
     stream.startTransaction();
 
@@ -419,8 +443,11 @@ QDataStream& operator>>(QDataStream& stream, Sence::Edge<E>*& edge) noexcept
     stream >> edge->_data;
     stream >> edge->_uuid;
 
-    if (!stream.commitTransaction())
-        throw 0; // TODO deserialize exc;
+    if (!stream.commitTransaction()) {
+        QString message("Can't desetialize the Edge.");
+        qDebug() << Q_FUNC_INFO << message;
+        throw Sence::DeserializeException(message);
+    }
 
     return stream;
 }

@@ -3,7 +3,7 @@
 
 #include <QList>
 
-#include "graphexception.h"
+#include "exception.h"
 
 namespace Sence {
 // clang-format off
