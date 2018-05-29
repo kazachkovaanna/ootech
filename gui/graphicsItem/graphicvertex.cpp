@@ -1,25 +1,32 @@
 #include "graphicvertex.h"
 
+#include <QCursor>
+#include <QGraphicsSceneEvent>
+#include <QGraphicsScene>
+#include <QWidget>
+#include <QDebug>
+
 GraphicVertex::GraphicVertex(QGraphicsItem *parent)
-    :QGraphicsObject (parent), color(Qt::lightGray)
+    : AbstractItem(parent)
+    , _rect(0, 0, 30, 30)
 {
-    setAcceptDrops(true);
+    setCursor(Qt::OpenHandCursor);
+    setAcceptedMouseButtons(Qt::LeftButton);
+
+    setZValue(100);
+
+    setBrush(true);
 }
 
 QRectF GraphicVertex::boundingRect() const
 {
-    return QRectF(0., 0., 1., 1.);
+    return _rect;
 }
 
-void GraphicVertex::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+QPainterPath GraphicVertex::shape() const
 {
-    Q_UNUSED(option);
-    Q_UNUSED(widget);
+    QPainterPath path;
+    path.addEllipse(_rect);
 
-    painter->setPen(Qt::NoPen);
-    painter->setBrush(Qt::darkGray);
-    painter->drawEllipse(-12, -12, 30, 30);
-    painter->setPen(QPen(Qt::black, 1));
-    painter->setBrush(QBrush(color));
-    painter->drawEllipse(-15, -15, 30, 30);
+    return path;
 }

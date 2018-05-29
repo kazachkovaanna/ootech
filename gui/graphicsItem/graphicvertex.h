@@ -1,23 +1,19 @@
 #ifndef GRAPHICVERTEX_H
 #define GRAPHICVERTEX_H
 
-#include <QGraphicsObject>
+#include "abstractitem.h"
 #include <QPainter>
 
-class GraphicVertex : public QGraphicsObject
+class GraphicVertex : public AbstractItem
 {
 public:
-    GraphicVertex(QGraphicsItem * parent = 0);
-protected:
-    QRectF boundingRect() const override;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
-//    void dragEnterEvent(QGraphicsSceneDragDropEvent *event) override;
-//    void dragLeaveEvent(QGraphicsSceneDragDropEvent *event) override;
-//    void dropEvent(QGraphicsSceneDragDropEvent *event) override;
+    GraphicVertex(QGraphicsItem *parent = nullptr);
 
-private:
-    QColor color;
-//    bool dragOver;
+    virtual QRectF boundingRect() const override;
+    virtual QPainterPath shape() const override;
+
+protected:
+    QRectF _rect;
 };
 
 #endif // GRAPHICVERTEX_H
