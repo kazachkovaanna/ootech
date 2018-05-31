@@ -6,3 +6,6 @@ HEADERS += \
     $$PWD/allocator.h \
     $$PWD/manipulator.h \
     $$PWD/exception.h
+
+SOURCES += \
+    $$PWD/manipulator.cpp

@@ -1,21 +1,21 @@
 #include <QGraphicsSceneMoveEvent>
+#include <QUuid>
 
 #include "abstractitem.h"
 
-AbstractItem::AbstractItem(QGraphicsItem *parent)
+AbstractItem::AbstractItem(QGraphicsItem* parent)
     : QGraphicsObject(parent)
     , _itemSelected(false)
-    , _hasBrush(false)
-    , _selection(nullptr)
-    , _pen(Qt::black)
+    , _pen(Qt::black, 2)
     , _selectedPen(Qt::DashLine)
     , _brush(Qt::gray)
     , _selectedBrush(Qt::lightGray)
+    , _uuid(QUuid::createUuid().toString())
 {
-    _selectedPen.setColor(QColor(255,0,0));
+    _selectedPen.setColor(QColor(255, 0, 0));
 }
 
-void AbstractItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void AbstractItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
     Q_UNUSED(option)
     Q_UNUSED(widget)
@@ -25,34 +25,26 @@ void AbstractItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
     painter->drawPath(shape());
 }
 
+QRectF AbstractItem::boundingRect() const
+{
+    return shape().boundingRect();
+}
+
 void AbstractItem::setItemSelected(bool selected)
 {
     _itemSelected = selected;
     update();
 }
 
-void AbstractItem::setBrush(bool brush)
-{
-    _hasBrush = brush;
-}
-
-void AbstractItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void AbstractItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     _pressPosition = event->scenePos();
     event->accept();
-}
-
-void AbstractItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
-{
-    if (_pressPosition == event->scenePos()) {
-        clickMouseEvent(event);
-        return;
-    }
-}
-
-void AbstractItem::clickMouseEvent(QGraphicsSceneMouseEvent *event)
-{
-    Q_UNUSED(event)
 
     setItemSelected(true);
+}
+
+void AbstractItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+    showSettings();
 }

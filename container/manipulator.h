@@ -1,12 +1,11 @@
 #ifndef MANIPULATOR_H
 #define MANIPULATOR_H
 
-#include <QTextStreamManipulator>
 #include <QDataStream>
+#include <QTextStreamManipulator>
 
-template<typename T>
-class DataStreamManipulator
-{
+template <typename T>
+class DataStreamManipulator {
     typedef QDataStream& (*SMF)(QDataStream&, T);
 
 public:
@@ -16,7 +15,7 @@ public:
     {
     }
 
-    void exec(QDataStream &stream) noexcept
+    void exec(QDataStream& stream) noexcept
     {
         if (_funcPtr) {
             _funcPtr(stream, _arg);
@@ -28,29 +27,17 @@ private:
     T _arg;
 };
 
-template<typename T>
-inline QDataStream& operator<<(QDataStream& stream, DataStreamManipulator<T> manipulator) noexcept { manipulator.exec(stream); return stream; }
-
-QDataStream& _setVersion(QDataStream& stream, QDataStream::Version version) noexcept
+template <typename T>
+inline QDataStream& operator<<(QDataStream& stream, DataStreamManipulator<T> manipulator) noexcept
 {
-    stream.setVersion(version);
+    manipulator.exec(stream);
     return stream;
 }
 
-QDataStream& _setByteOrder(QDataStream& stream, QDataStream::ByteOrder byteOrder) noexcept
-{
-    stream.setByteOrder(byteOrder);
-    return stream;
-}
+QDataStream& _setVersion(QDataStream& stream, QDataStream::Version version) noexcept;
+QDataStream& _setByteOrder(QDataStream& stream, QDataStream::ByteOrder byteOrder) noexcept;
 
-DataStreamManipulator<QDataStream::Version> setVersion(QDataStream::Version version) noexcept
-{
-    return DataStreamManipulator<QDataStream::Version>(&_setVersion, version);
-}
-
-DataStreamManipulator<QDataStream::ByteOrder> setByteOrder(QDataStream::ByteOrder byteOrder) noexcept
-{
-    return DataStreamManipulator<QDataStream::ByteOrder>(&_setByteOrder, byteOrder);
-}
+DataStreamManipulator<QDataStream::Version> setVersion(QDataStream::Version version) noexcept;
+DataStreamManipulator<QDataStream::ByteOrder> setByteOrder(QDataStream::ByteOrder byteOrder) noexcept;
 
 #endif // MANIPULATOR_H

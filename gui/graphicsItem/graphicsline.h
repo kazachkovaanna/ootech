@@ -3,20 +3,39 @@
 
 #include "abstractitem.h"
 
-class GraphicsLine : public AbstractItem
-{
+namespace Sence {
+template <typename E>
+class Edge;
+}
+
+class GraphicsLine : public AbstractItem {
+    Q_OBJECT
+
 public:
     GraphicsLine(QGraphicsItem* parent = nullptr);
 
-    virtual QRectF boundingRect() const override;
+    inline AbstractItem* start() const { return _start; }
+    inline AbstractItem* end() const { return _end; }
 
-    inline QList<QPointF> points() const { return _points; }
-    void setPoints(const QList<QPointF>& points);
+    void setStart(AbstractItem* start);
+    void setEnd(AbstractItem* end);
 
     virtual QPainterPath shape() const override;
 
+    virtual QPointF getCenter() const override;
+
+    inline QList<Sence::Edge<int>*> getEdge() const { return _edges; }
+    void setEdge(const QList<Sence::Edge<int>*>& edges);
+
+    virtual void showSettings() override;
+
+protected slots:
+    void fullUpdate();
+
 protected:
-    QList<QPointF> _points;
+    AbstractItem* _start;
+    AbstractItem* _end;
+    QList<Sence::Edge<int>*> _edges;
 };
 
 #endif // GRAPHICSLINE_H

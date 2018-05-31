@@ -1,12 +1,16 @@
 #include "graphicsline.h"
+#include "graph.h"
+#include "graphiclinedialog.h"
 
+#include <QCursor>
+#include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
-#include <QGraphicsSceneMouseEvent>
-#include <QCursor>
 
-GraphicsLine::GraphicsLine(QGraphicsItem *parent)
+GraphicsLine::GraphicsLine(QGraphicsItem* parent)
     : AbstractItem(parent)
+    , _start(nullptr)
+    , _end(nullptr)
 {
     setCursor(Qt::OpenHandCursor);
     setAcceptedMouseButtons(Qt::LeftButton);
@@ -14,29 +18,86 @@ GraphicsLine::GraphicsLine(QGraphicsItem *parent)
     setZValue(50);
 }
 
-QRectF GraphicsLine::boundingRect() const
+void GraphicsLine::setStart(AbstractItem* start)
 {
-    return shape().boundingRect();
+    if (_start) {
+        disconnect(_start, &QGraphicsObject::xChanged, this, &GraphicsLine::fullUpdate);
+        disconnect(_start, &QGraphicsObject::yChanged, this, &GraphicsLine::fullUpdate);
+    }
+
+    prepareGeometryChange();
+    _start = start;
+    update();
+
+    if (_start) {
+        connect(_start, &QGraphicsObject::xChanged, this, &GraphicsLine::fullUpdate);
+        connect(_start, &QGraphicsObject::yChanged, this, &GraphicsLine::fullUpdate);
+    }
 }
 
-void GraphicsLine::setPoints(const QList<QPointF> &points)
+void GraphicsLine::setEnd(AbstractItem* end)
 {
-    prepareGeometryChange();
-    _points = points;
+    if (_end) {
+        disconnect(_end, &QGraphicsObject::xChanged, this, &GraphicsLine::fullUpdate);
+        disconnect(_end, &QGraphicsObject::yChanged, this, &GraphicsLine::fullUpdate);
+    }
 
+    prepareGeometryChange();
+    _end = end;
     update();
+
+    if (_end) {
+        connect(_end, &QGraphicsObject::xChanged, this, &GraphicsLine::fullUpdate);
+        connect(_end, &QGraphicsObject::yChanged, this, &GraphicsLine::fullUpdate);
+    }
 }
 
 QPainterPath GraphicsLine::shape() const
 {
     QPainterPath painterPath;
-    if (!_points.isEmpty()) {
-        painterPath.moveTo(_points[0]);
-        QPointF end = _points.last();
-        for (int i = 1; i < _points.size() - 1; i++) {
-            painterPath.quadTo(_points[i], end);
+
+    if (!_start || !_end)
+        return painterPath;
+
+    painterPath.moveTo(_start->getCenter());
+    painterPath.lineTo(_end->getCenter());
+
+    if (!_edges.isEmpty()) {
+        QString text;
+        for (Sence::Edge<int>* e : _edges) {
+            text += QString::number(e->getData()) + " ";
         }
+        painterPath.addText(getCenter(), QFont(), text);
     }
 
     return painterPath;
+}
+
+QPointF GraphicsLine::getCenter() const
+{
+    return (_start->getCenter() + _end->getCenter()) / 2;
+}
+
+void GraphicsLine::setEdge(const QList<Sence::Edge<int>*>& edges)
+{
+    _edges = edges;
+    update();
+}
+
+void GraphicsLine::showSettings()
+{
+    GraphicLineDialog d;
+    d.setTooltip(toolTip());
+    d.setCosts({ _edges[0]->getData() });
+
+    if (GraphicLineDialog::Accepted == d.exec()) {
+        setToolTip(d.getTooltip());
+        _edges[0]->setData(d.getCosts()[0]);
+    }
+}
+
+void GraphicsLine::fullUpdate()
+{
+    prepareGeometryChange();
+    update();
 }

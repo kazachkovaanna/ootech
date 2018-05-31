@@ -1,21 +1,32 @@
 #include "graphicsview.h"
+#include "abstractitem.h"
+#include "graphicsline.h"
+#include "graphicvertex.h"
+
+#include <QDebug>
 #include <QResizeEvent>
 #include <QTransform>
-#include <QDebug>
 
-GraphicsView::GraphicsView(QWidget *parent)
+GraphicsView::GraphicsView(QWidget* parent)
     : QGraphicsView(parent)
+    , _graphicsMode(ViewMode)
 {
     setRenderHint(QPainter::Antialiasing);
-    setRenderHint(QPainter::SmoothPixmapTransform);
 }
 
-GraphicsView::GraphicsView(QGraphicsScene *scene, QWidget *parent)
+GraphicsView::GraphicsView(QGraphicsScene* scene, QWidget* parent)
     : QGraphicsView(scene, parent)
+    , _graphicsMode(ViewMode)
 {
+    setRenderHint(QPainter::Antialiasing);
 }
 
-void GraphicsView::resizeEvent(QResizeEvent *event)
+void GraphicsView::setGraphicsMode(GraphicsView::GraphicsMode mode)
+{
+    _graphicsMode = mode;
+}
+
+void GraphicsView::resizeEvent(QResizeEvent* event)
 {
     QGraphicsView::resizeEvent(event);
 
@@ -25,15 +36,105 @@ void GraphicsView::resizeEvent(QResizeEvent *event)
     scene()->setSceneRect(0, 0, event->size().width(), event->size().height());
 }
 
-void GraphicsView::mousePressEvent(QMouseEvent *event)
+void GraphicsView::mousePressEvent(QMouseEvent* event)
 {
-    if (scene()) {
+    if (!scene()) {
+        QGraphicsView::mousePressEvent(event);
+        return;
+    }
+
+    switch (_graphicsMode) {
+    case ViewMode: {
+        QGraphicsView::mousePressEvent(event);
         for (QGraphicsItem* item : scene()->items()) {
             if (auto i = dynamic_cast<AbstractItem*>(item)) {
                 i->setItemSelected(false);
             }
         }
+        return;
+    }
+    case EditVertexMode: {
+        GraphicVertex* vertex = new GraphicVertex;
+        vertex->setPos(event->pos());
+        vertex->setVertex(new Sence::Vertex<QString>);
+        scene()->addItem(vertex);
+        _graph.add(vertex->getVertex());
+
+        return;
+    }
+    case EditEdgeMode: {
+        _selectedItem = getItem<GraphicVertex>(event->pos());
+        return;
+    }
+    }
+}
+
+void GraphicsView::mouseReleaseEvent(QMouseEvent* event)
+{
+    if (_graphicsMode != EditEdgeMode) {
+        QGraphicsView::mouseReleaseEvent(event);
+        return;
     }
 
-    QGraphicsView::mousePressEvent(event);
+    GraphicVertex* end = getItem<GraphicVertex>(event->pos());
+
+    if (!_selectedItem || !end) {
+        QGraphicsView::mouseReleaseEvent(event);
+        return;
+    }
+
+    Sence::Vertex<QString>* from = _selectedItem->getVertex();
+    Sence::Vertex<QString>* to = end->getVertex();
+
+    Sence::Edge<int>* edge = new Sence::Edge<int>;
+
+    if (_graph.edgesByVertices(from, to).isEmpty()) {
+        GraphicsLine* line = new GraphicsLine;
+        line->setStart(_selectedItem);
+        line->setEnd(end);
+        line->setEdge({ edge });
+
+        scene()->addItem(line);
+        _graph.add(from, to, edge);
+    }
+
+    QGraphicsView::mouseReleaseEvent(event);
+}
+
+void GraphicsView::mouseDoubleClickEvent(QMouseEvent* event)
+{
+    //    if (GraphicVertex* v = getItem<GraphicVertex>(event->pos())) {
+    //        v->showSettings();
+    //    } else if (GraphicsLine* l = getItem<GraphicsLine>(event->pos())) {
+    //        l->showSettings();
+    //    }
+    if (ViewMode == _graphicsMode) {
+        QGraphicsView::mouseDoubleClickEvent(event);
+    }
+}
+
+template <typename T>
+T* GraphicsView::getItem(const QPointF& point) const
+{
+    for (QGraphicsItem* item : scene()->items(point)) {
+        if (T* i = dynamic_cast<T*>(item)) {
+            return i;
+        }
+    }
+
+    return nullptr;
+}
+
+template <typename T>
+QList<T*> GraphicsView::getItems(const QPointF& point) const
+{
+    QList<T*> items;
+
+    for (QGraphicsItem* item : scene()->items(point)) {
+        if (T* i = dynamic_cast<T*>(item)) {
+            items.append(i);
+        }
+    }
+
+    return items;
 }

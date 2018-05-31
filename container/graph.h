@@ -221,7 +221,7 @@ public:
             : _vertices(vertices)
             , _pointer(nullptr)
         {
-            if (begin && !vertices.isEmpty()) {
+            if (begin && !_vertices.isEmpty()) {
                 _pointer = _vertices[0];
             }
         }
@@ -238,19 +238,6 @@ public:
                 _pointer = nullptr;
 
             return *this;
-        }
-
-        iteratorV& operator++(const iteratorV&) noexcept
-        {
-            iteratorV current;
-
-            int number = _vertices.indexOf(_pointer);
-            if (number != -1 || _vertices.last() < _pointer)
-                _pointer = _vertices[number + 1];
-            else
-                _pointer = nullptr;
-
-            return current;
         }
 
         inline bool operator==(const iteratorV& it) noexcept
@@ -278,7 +265,7 @@ public:
         Vertex<V>* _pointer;
     };
 
-    iteratorV begin() noexcept { return iteratorV(_vertices.values(), true); }
+    iteratorV begin() const noexcept { return iteratorV(_vertices.values(), true); }
     iteratorV end() noexcept { return iteratorV(_vertices.values(), false); }
 
     iteratorE begin(Vertex<V>* vertex) noexcept
@@ -303,12 +290,31 @@ public:
         return vertices;
     }
 
-    inline QList<Edge<E>*> edgesByVertex(Vertex<V>* vertex) const noexcept
+    QList<Edge<E>*> edgesByVertex(Vertex<V>* vertex) const noexcept
     {
         QList<Edge<E>*> edges;
 
+        if (!vertex)
+            return edges;
+
         for (const QString& e : _connections.values(vertex->getUuid())) {
             edges.append(_edges.value(e));
+        }
+
+        return edges;
+    }
+
+    QList<Edge<E>*> edgesByVertices(Vertex<V>* start, Vertex<V>* end)
+    {
+        QList<Edge<E>*> edges;
+
+        if (!start || !end)
+            return edges;
+
+        for (const QString& e : _connections.values(start->getUuid())) {
+            if (_connections.values(end->getUuid()).contains(e)) {
+                edges.append(_edges.value(e));
+            }
         }
 
         return edges;
