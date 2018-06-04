@@ -14,8 +14,9 @@ GraphicVertex::GraphicVertex(QGraphicsItem* parent)
     , _rect(0, 0, 30, 30)
     , _vertex(nullptr)
 {
-    setCursor(Qt::OpenHandCursor);
-    setAcceptedMouseButtons(Qt::LeftButton);
+//    setCursor(Qt::OpenHandCursor);
+//    setAcceptedMouseButtons(Qt::LeftButton);
+    setFlag(QGraphicsItem::ItemIsMovable);
 
     setZValue(100);
 }
@@ -52,10 +53,12 @@ void GraphicVertex::showSettings()
     if (GraphicsVertexDialog::Accepted == d.exec()) {
         _vertex->setData(d.getName());
         setToolTip(d.getTooltip());
+        update();
     }
 }
 
 void GraphicVertex::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-    setPos(event->scenePos());
+    QGraphicsObject::mouseMoveEvent(event);
+//    setPos(event->scenePos());
 }

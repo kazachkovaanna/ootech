@@ -45,12 +45,12 @@ void GraphicsView::mousePressEvent(QMouseEvent* event)
 
     switch (_graphicsMode) {
     case ViewMode: {
-        QGraphicsView::mousePressEvent(event);
         for (QGraphicsItem* item : scene()->items()) {
             if (auto i = dynamic_cast<AbstractItem*>(item)) {
                 i->setItemSelected(false);
             }
         }
+        QGraphicsView::mousePressEvent(event);
         return;
     }
     case EditVertexMode: {
@@ -78,7 +78,7 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent* event)
 
     GraphicVertex* end = getItem<GraphicVertex>(event->pos());
 
-    if (!_selectedItem || !end) {
+    if (!_selectedItem || !end || _selectedItem == end) {
         QGraphicsView::mouseReleaseEvent(event);
         return;
     }
@@ -103,14 +103,14 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent* event)
 
 void GraphicsView::mouseDoubleClickEvent(QMouseEvent* event)
 {
-    //    if (GraphicVertex* v = getItem<GraphicVertex>(event->pos())) {
-    //        v->showSettings();
-    //    } else if (GraphicsLine* l = getItem<GraphicsLine>(event->pos())) {
-    //        l->showSettings();
-    //    }
-    if (ViewMode == _graphicsMode) {
-        QGraphicsView::mouseDoubleClickEvent(event);
-    }
+        if (GraphicVertex* v = getItem<GraphicVertex>(event->pos())) {
+            v->showSettings();
+        } else if (GraphicsLine* l = getItem<GraphicsLine>(event->pos())) {
+            l->showSettings();
+        }
+//    if (ViewMode == _graphicsMode) {
+//        QGraphicsView::mouseDoubleClickEvent(event);
+//    }
 }
 
 template <typename T>

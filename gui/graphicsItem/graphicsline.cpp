@@ -12,10 +12,13 @@ GraphicsLine::GraphicsLine(QGraphicsItem* parent)
     , _start(nullptr)
     , _end(nullptr)
 {
-    setCursor(Qt::OpenHandCursor);
-    setAcceptedMouseButtons(Qt::LeftButton);
+//    setCursor(Qt::OpenHandCursor);
+//    setAcceptedMouseButtons(Qt::LeftButton);
+    setFocus(Qt::MouseFocusReason);
+    setFlag(QGraphicsItem::ItemIsMovable, false);
+    setFlag(QGraphicsItem::ItemIsSelectable);
 
-    setZValue(50);
+    setZValue(450);
 }
 
 void GraphicsLine::setStart(AbstractItem* start)
@@ -93,6 +96,7 @@ void GraphicsLine::showSettings()
     if (GraphicLineDialog::Accepted == d.exec()) {
         setToolTip(d.getTooltip());
         _edges[0]->setData(d.getCosts()[0]);
+        update();
     }
 }
 

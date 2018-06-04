@@ -41,8 +41,6 @@ protected:
     QBrush _brush;
     QBrush _selectedBrush;
 
-    QPointF _pressPosition;
-
     QString _uuid;
 };
 

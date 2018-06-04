@@ -38,9 +38,7 @@ void AbstractItem::setItemSelected(bool selected)
 
 void AbstractItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-    _pressPosition = event->scenePos();
-    event->accept();
-
+    QGraphicsObject::mousePressEvent(event);
     setItemSelected(true);
 }
 
