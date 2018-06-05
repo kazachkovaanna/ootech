@@ -9,37 +9,44 @@
 #include <QPointF>
 
 class AbstractItem : public QGraphicsObject {
-    Q_OBJECT
-
 public:
     AbstractItem(QGraphicsItem* parent = nullptr);
 
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
     virtual QRectF boundingRect() const override;
 
-    inline bool itemSelected() const { return _itemSelected; }
-    void setItemSelected(bool selected);
-
-    inline QPen pen() const { return itemSelected() ? _selectedPen : _pen; }
-    inline QBrush brush() const { return itemSelected() ? _selectedBrush : _brush; }
+    inline QPen currentPen() const { return isSelected() ? _selectedPen : _pen; }
+    inline QBrush currentBrush() const { return isSelected() ? _selectedBrush : _brush; }
 
     inline QString getUuid() const { return _uuid; }
 
     virtual QPointF getCenter() const = 0;
     virtual void showSettings() = 0;
 
+public:
+    static void setPen(const QPen& pen);
+    static void setSelectedPen(const QPen& pen);
+    static void setBrush(const QBrush& brush);
+    static void setSelectedBrush(const QBrush& brush);
+    static void setFont(const QFont& font);
+
+    inline static QPen pen() { return _pen; }
+    inline static QPen selectedPen() { return _selectedPen; }
+    inline static QBrush brush() { return _brush; }
+    inline static QBrush selectedBrush() { return _selectedBrush; }
+    inline static QFont font() { return _font; }
+
 protected:
-    virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
     virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
 protected:
-    bool _itemSelected;
+    static QPen _pen;
+    static QPen _selectedPen;
 
-    QPen _pen;
-    QPen _selectedPen;
+    static QBrush _brush;
+    static QBrush _selectedBrush;
 
-    QBrush _brush;
-    QBrush _selectedBrush;
+    static QFont _font;
 
     QString _uuid;
 };

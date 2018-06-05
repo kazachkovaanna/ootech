@@ -27,7 +27,7 @@ QPainterPath GraphicVertex::shape() const
     path.addEllipse(_rect);
 
     if (_vertex && !_vertex->getData().isEmpty()) {
-        path.addText(_rect.topRight(), QFont(), _vertex->getData());
+        path.addText(_rect.topRight(), _font, _vertex->getData());
     }
 
     return path;
@@ -55,10 +55,4 @@ void GraphicVertex::showSettings()
         setToolTip(d.getTooltip());
         update();
     }
-}
-
-void GraphicVertex::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
-{
-    QGraphicsObject::mouseMoveEvent(event);
-//    setPos(event->scenePos());
 }

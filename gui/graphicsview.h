@@ -14,7 +14,6 @@ public:
         ViewMode,
         EditVertexMode,
         EditEdgeMode
-        //        MoveMode
     };
 
 public:
@@ -25,6 +24,18 @@ public:
     void setGraphicsMode(GraphicsMode mode);
 
     inline const Sence::Graph<QString, int>& getGraph() const { return _graph; }
+
+    QPen pen() const;
+    QPen selectedPen() const;
+    QBrush brush() const;
+    QBrush selectedBrush() const;
+    QFont font() const;
+
+    void setPen(const QPen& pen);
+    void setSelectedPen(const QPen& pen);
+    void setBrush(const QBrush& brush);
+    void setSelectedBrush(const QBrush& brush);
+    void setFont(const QFont& font);
 
 protected:
     virtual void resizeEvent(QResizeEvent* event) override;

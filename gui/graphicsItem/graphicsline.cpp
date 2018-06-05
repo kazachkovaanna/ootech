@@ -16,7 +16,6 @@ GraphicsLine::GraphicsLine(QGraphicsItem* parent)
 //    setAcceptedMouseButtons(Qt::LeftButton);
     setFocus(Qt::MouseFocusReason);
     setFlag(QGraphicsItem::ItemIsMovable, false);
-    setFlag(QGraphicsItem::ItemIsSelectable);
 
     setZValue(450);
 }
@@ -70,7 +69,7 @@ QPainterPath GraphicsLine::shape() const
         for (Sence::Edge<int>* e : _edges) {
             text += QString::number(e->getData()) + " ";
         }
-        painterPath.addText(getCenter(), QFont(), text);
+        painterPath.addText(getCenter(), _font, text);
     }
 
     return painterPath;

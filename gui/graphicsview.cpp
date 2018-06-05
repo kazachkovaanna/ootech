@@ -26,6 +26,56 @@ void GraphicsView::setGraphicsMode(GraphicsView::GraphicsMode mode)
     _graphicsMode = mode;
 }
 
+QPen GraphicsView::pen() const
+{
+    return AbstractItem::pen();
+}
+
+QPen GraphicsView::selectedPen() const
+{
+    return AbstractItem::selectedPen();
+}
+
+QBrush GraphicsView::brush() const
+{
+    return AbstractItem::brush();
+}
+
+QBrush GraphicsView::selectedBrush() const
+{
+    return AbstractItem::selectedBrush();
+}
+
+QFont GraphicsView::font() const
+{
+    return AbstractItem::font();
+}
+
+void GraphicsView::setPen(const QPen &pen)
+{
+    AbstractItem::setPen(pen);
+}
+
+void GraphicsView::setSelectedPen(const QPen &pen)
+{
+    AbstractItem::setSelectedPen(pen);
+}
+
+void GraphicsView::setBrush(const QBrush &brush)
+{
+    AbstractItem::setBrush(brush);
+}
+
+void GraphicsView::setSelectedBrush(const QBrush &brush)
+{
+    AbstractItem::setSelectedBrush(brush);
+}
+
+void GraphicsView::setFont(const QFont &font)
+{
+    AbstractItem::setFont(font);
+}
+
 void GraphicsView::resizeEvent(QResizeEvent* event)
 {
     QGraphicsView::resizeEvent(event);
@@ -38,16 +88,11 @@ void GraphicsView::resizeEvent(QResizeEvent* event)
 
 void GraphicsView::mousePressEvent(QMouseEvent* event)
 {
-    if (!scene()) {
-        QGraphicsView::mousePressEvent(event);
-        return;
-    }
-
     switch (_graphicsMode) {
     case ViewMode: {
-        for (QGraphicsItem* item : scene()->items()) {
+        for (QGraphicsItem* item : items()) {
             if (auto i = dynamic_cast<AbstractItem*>(item)) {
-                i->setItemSelected(false);
+                i->setSelected(false);
             }
         }
         QGraphicsView::mousePressEvent(event);
@@ -103,20 +148,15 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent* event)
 
 void GraphicsView::mouseDoubleClickEvent(QMouseEvent* event)
 {
-        if (GraphicVertex* v = getItem<GraphicVertex>(event->pos())) {
-            v->showSettings();
-        } else if (GraphicsLine* l = getItem<GraphicsLine>(event->pos())) {
-            l->showSettings();
-        }
-//    if (ViewMode == _graphicsMode) {
-//        QGraphicsView::mouseDoubleClickEvent(event);
-//    }
+    if (ViewMode == _graphicsMode) {
+        QGraphicsView::mouseDoubleClickEvent(event);
+    }
 }
 
 template <typename T>
 T* GraphicsView::getItem(const QPointF& point) const
 {
-    for (QGraphicsItem* item : scene()->items(point)) {
+    for (QGraphicsItem* item : items(point.toPoint())) {
         if (T* i = dynamic_cast<T*>(item)) {
             return i;
         }
@@ -130,7 +170,7 @@ QList<T*> GraphicsView::getItems(const QPointF& point) const
 {
     QList<T*> items;
 
-    for (QGraphicsItem* item : scene()->items(point)) {
+    for (QGraphicsItem* item : items(point.toPoint())) {
         if (T* i = dynamic_cast<T*>(item)) {
             items.append(i);
         }

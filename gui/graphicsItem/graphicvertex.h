@@ -21,9 +21,6 @@ public:
     virtual void showSettings() override;
 
 protected:
-    virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-
-protected:
     QRectF _rect;
     Sence::Vertex<QString>* _vertex;
 };

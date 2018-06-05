@@ -4,6 +4,7 @@
 #include "graphicsview.h"
 #include "graphicvertex.h"
 #include "ui_mainwindow.h"
+#include "settingsdialog.h"
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -13,6 +14,15 @@ MainWindow::MainWindow(QWidget* parent)
     ui->graphicsView->setScene(new QGraphicsScene(ui->graphicsView));
 
     on_actionViewMode_triggered();
+
+    SettingsDialog dialog;
+    dialog.load(QSettings());
+
+    ui->graphicsView->setPen(dialog.pen());
+    ui->graphicsView->setSelectedPen(dialog.selectedPen());
+    ui->graphicsView->setBrush(dialog.brush());
+    ui->graphicsView->setSelectedBrush(dialog.selectedBrush());
+    ui->graphicsView->setFont(dialog.font());
 }
 
 MainWindow::~MainWindow()
@@ -39,6 +49,20 @@ void MainWindow::on_actionExit_triggered()
 
 void MainWindow::on_actionSettings_triggered()
 {
+    QSettings settings;
+
+    SettingsDialog dialog(this);
+    dialog.load(settings);
+
+    if (dialog.exec() == SettingsDialog::Accepted) {
+        dialog.save(settings);
+
+        ui->graphicsView->setPen(dialog.pen());
+        ui->graphicsView->setSelectedPen(dialog.selectedPen());
+        ui->graphicsView->setBrush(dialog.brush());
+        ui->graphicsView->setSelectedBrush(dialog.selectedBrush());
+        ui->graphicsView->setFont(dialog.font());
+    }
 }
 
 void MainWindow::on_actionAbout_triggered()

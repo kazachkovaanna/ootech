@@ -1,18 +1,20 @@
 #include <QGraphicsSceneMoveEvent>
 #include <QUuid>
+#include <QStyleOptionGraphicsItem>
 
 #include "abstractitem.h"
 
+QPen AbstractItem::_pen(Qt::black, 2);
+QPen AbstractItem::_selectedPen(QBrush(Qt::red), 2, Qt::DashLine);
+QBrush AbstractItem::_brush(Qt::gray);
+QBrush AbstractItem::_selectedBrush(Qt::lightGray);
+QFont AbstractItem::_font("Arial", 10);
+
 AbstractItem::AbstractItem(QGraphicsItem* parent)
     : QGraphicsObject(parent)
-    , _itemSelected(false)
-    , _pen(Qt::black, 2)
-    , _selectedPen(Qt::DashLine)
-    , _brush(Qt::gray)
-    , _selectedBrush(Qt::lightGray)
     , _uuid(QUuid::createUuid().toString())
 {
-    _selectedPen.setColor(QColor(255, 0, 0));
+    setFlag(QGraphicsItem::ItemIsSelectable);
 }
 
 void AbstractItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
@@ -20,8 +22,8 @@ void AbstractItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* opti
     Q_UNUSED(option)
     Q_UNUSED(widget)
 
-    painter->setPen(pen());
-    painter->setBrush(brush());
+    painter->setPen(currentPen());
+    painter->setBrush(currentBrush());
     painter->drawPath(shape());
 }
 
@@ -30,19 +32,33 @@ QRectF AbstractItem::boundingRect() const
     return shape().boundingRect();
 }
 
-void AbstractItem::setItemSelected(bool selected)
+void AbstractItem::setPen(const QPen &pen)
 {
-    _itemSelected = selected;
-    update();
+    _pen = pen;
 }
 
-void AbstractItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void AbstractItem::setSelectedPen(const QPen &pen)
 {
-    QGraphicsObject::mousePressEvent(event);
-    setItemSelected(true);
+    _selectedPen = pen;
+}
+
+void AbstractItem::setBrush(const QBrush &brush)
+{
+    _brush = brush;
+}
+
+void AbstractItem::setSelectedBrush(const QBrush &brush)
+{
+    _selectedBrush = brush;
+}
+
+void AbstractItem::setFont(const QFont &font)
+{
+    _font = font;
 }
 
 void AbstractItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
+    QGraphicsObject::mouseDoubleClickEvent(event);
     showSettings();
 }
