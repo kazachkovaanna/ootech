@@ -13,8 +13,6 @@ MainWindow::MainWindow(QWidget* parent)
     ui->setupUi(this);
     ui->graphicsView->setScene(new QGraphicsScene(ui->graphicsView));
 
-    on_actionViewMode_triggered();
-
     SettingsDialog dialog;
     dialog.load(QSettings());
 
@@ -69,35 +67,35 @@ void MainWindow::on_actionAbout_triggered()
 {
 }
 
-void MainWindow::on_actionViewMode_triggered()
+void MainWindow::on_actionAddVertexMode_triggered(bool checked)
 {
-    ui->actionViewMode->setChecked(true);
-    ui->actionAddVertexMode->setChecked(false);
     ui->actionAddEdgeMode->setChecked(false);
+    ui->actionAlgorithm->setChecked(false);
 
-    ui->graphicsView->setGraphicsMode(GraphicsView::ViewMode);
+    if (checked)
+        ui->graphicsView->setGraphicsMode(GraphicsView::EditVertexMode);
+    else
+        ui->graphicsView->setGraphicsMode(GraphicsView::ViewMode);
 }
 
-void MainWindow::on_actionAddVertexMode_triggered()
+void MainWindow::on_actionAddEdgeMode_triggered(bool checked)
 {
-    ui->actionViewMode->setChecked(false);
-    ui->actionAddVertexMode->setChecked(true);
-    ui->actionAddEdgeMode->setChecked(false);
-
-    ui->graphicsView->setGraphicsMode(GraphicsView::EditVertexMode);
-}
-
-void MainWindow::on_actionAddEdgeMode_triggered()
-{
-    ui->actionViewMode->setChecked(false);
     ui->actionAddVertexMode->setChecked(false);
-    ui->actionAddEdgeMode->setChecked(true);
+    ui->actionAlgorithm->setChecked(false);
 
-    ui->graphicsView->setGraphicsMode(GraphicsView::EditEdgeMode);
+    if (checked)
+        ui->graphicsView->setGraphicsMode(GraphicsView::EditEdgeMode);
+    else
+        ui->graphicsView->setGraphicsMode(GraphicsView::ViewMode);
 }
 
-void MainWindow::on_actionAlgorithm_triggered()
+void MainWindow::on_actionAlgorithm_triggered(bool checked)
 {
-    AlgorithmDialog d;
-    //    d.calcualte(ui->graphicsView->getGraph(), *ui->graphicsView->getGraph().begin());
+    ui->actionAddEdgeMode->setChecked(false);
+    ui->actionAddVertexMode->setChecked(false);
+
+    if (checked)
+        ui->graphicsView->setGraphicsMode(GraphicsView::ViewCostMode);
+    else
+        ui->graphicsView->setGraphicsMode(GraphicsView::ViewMode);
 }

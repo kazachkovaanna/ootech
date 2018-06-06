@@ -2,21 +2,16 @@
 #include "graph.h"
 #include "graphiclinedialog.h"
 
-#include <QCursor>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
+#include <QtMath>
 
 GraphicsLine::GraphicsLine(QGraphicsItem* parent)
     : AbstractItem(parent)
     , _start(nullptr)
     , _end(nullptr)
 {
-//    setCursor(Qt::OpenHandCursor);
-//    setAcceptedMouseButtons(Qt::LeftButton);
-    setFocus(Qt::MouseFocusReason);
-    setFlag(QGraphicsItem::ItemIsMovable, false);
-
     setZValue(450);
 }
 
@@ -35,6 +30,10 @@ void GraphicsLine::setStart(AbstractItem* start)
         connect(_start, &QGraphicsObject::xChanged, this, &GraphicsLine::fullUpdate);
         connect(_start, &QGraphicsObject::yChanged, this, &GraphicsLine::fullUpdate);
     }
+
+    if (_start && _end) {
+        _controlPoint = (_start->getCenter() + _end->getCenter()) / 2;
+    }
 }
 
 void GraphicsLine::setEnd(AbstractItem* end)
@@ -52,6 +51,10 @@ void GraphicsLine::setEnd(AbstractItem* end)
         connect(_end, &QGraphicsObject::xChanged, this, &GraphicsLine::fullUpdate);
         connect(_end, &QGraphicsObject::yChanged, this, &GraphicsLine::fullUpdate);
     }
+
+    if (_start && _end) {
+        _controlPoint = (_start->getCenter() + _end->getCenter()) / 2;
+    }
 }
 
 QPainterPath GraphicsLine::shape() const
@@ -62,14 +65,12 @@ QPainterPath GraphicsLine::shape() const
         return painterPath;
 
     painterPath.moveTo(_start->getCenter());
-    painterPath.lineTo(_end->getCenter());
+    painterPath.quadTo(_controlPoint, _end->getCenter());
+    QPainterPathStroker stroker(Qt::NoPen);
+    painterPath = stroker.createStroke(painterPath);
 
-    if (!_edges.isEmpty()) {
-        QString text;
-        for (Sence::Edge<int>* e : _edges) {
-            text += QString::number(e->getData()) + " ";
-        }
-        painterPath.addText(getCenter(), _font, text);
+    if (_edge) {
+        painterPath.addText(getCenter(), _font, QString::number(_edge->getData()));
     }
 
     return painterPath;
@@ -77,12 +78,15 @@ QPainterPath GraphicsLine::shape() const
 
 QPointF GraphicsLine::getCenter() const
 {
-    return (_start->getCenter() + _end->getCenter()) / 2;
+    const double t = 0.5;
+    const double _t = 1 - t;
+
+    return qPow(_t, 2) * _start->getCenter() + 2 * t * _t * _controlPoint + qPow(t, 2) * _end->getCenter();
 }
 
-void GraphicsLine::setEdge(const QList<Sence::Edge<int>*>& edges)
+void GraphicsLine::setEdge(Sence::Edge<int>* edge)
 {
-    _edges = edges;
+    _edge = edge;
     update();
 }
 
@@ -90,13 +94,21 @@ void GraphicsLine::showSettings()
 {
     GraphicLineDialog d;
     d.setTooltip(toolTip());
-    d.setCosts({ _edges[0]->getData() });
+    d.setCost(_edge->getData());
 
     if (GraphicLineDialog::Accepted == d.exec()) {
         setToolTip(d.getTooltip());
-        _edges[0]->setData(d.getCosts()[0]);
+        _edge->setData(d.getCost());
         update();
     }
+}
+
+void GraphicsLine::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+{
+    prepareGeometryChange();
+    _controlPoint = event->scenePos();
+    update();
+    AbstractItem::mouseMoveEvent(event);
 }
 
 void GraphicsLine::fullUpdate()

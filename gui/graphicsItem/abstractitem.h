@@ -37,6 +37,8 @@ public:
     inline static QFont font() { return _font; }
 
 protected:
+    virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+    virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
     virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
 protected:

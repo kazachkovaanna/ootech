@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/">
+        <file>pictures/capital-letter-a.png</file>
+        <file>pictures/paint-board-and-brush.png</file>
+        <file>pictures/node_edit.png</file>
+        <file>pictures/edge_edit.png</file>
+        <file>pictures/cost.png</file>
+        <file>pictures/cost_selected.png</file>
+    </qresource>
+</RCC>

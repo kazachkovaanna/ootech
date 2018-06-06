@@ -17,8 +17,8 @@ public:
     QString getTooltip() const;
     void setTooltip(const QString& tooltip);
 
-    QList<int> getCosts() const;
-    void setCosts(const QList<int>& costs);
+    int getCost() const;
+    void setCost(int cost);
 
 private:
     Ui::GraphicLineDialog* ui;

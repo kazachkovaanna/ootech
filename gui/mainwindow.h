@@ -23,11 +23,9 @@ private slots:
     void on_actionSettings_triggered();
     void on_actionAbout_triggered();
 
-    void on_actionViewMode_triggered();
-    void on_actionAddVertexMode_triggered();
-    void on_actionAddEdgeMode_triggered();
-
-    void on_actionAlgorithm_triggered();
+    void on_actionAddVertexMode_triggered(bool checked);
+    void on_actionAddEdgeMode_triggered(bool checked);
+    void on_actionAlgorithm_triggered(bool checked);
 
 private:
     Ui::MainWindow* ui;

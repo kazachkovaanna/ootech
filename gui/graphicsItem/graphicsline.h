@@ -24,10 +24,13 @@ public:
 
     virtual QPointF getCenter() const override;
 
-    inline QList<Sence::Edge<int>*> getEdge() const { return _edges; }
-    void setEdge(const QList<Sence::Edge<int>*>& edges);
+    inline Sence::Edge<int>* getEdge() const { return _edge; }
+    void setEdge(Sence::Edge<int>* edge);
 
     virtual void showSettings() override;
+
+protected:
+    virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
 
 protected slots:
     void fullUpdate();
@@ -35,7 +38,8 @@ protected slots:
 protected:
     AbstractItem* _start;
     AbstractItem* _end;
-    QList<Sence::Edge<int>*> _edges;
+    QPointF _controlPoint;
+    Sence::Edge<int>* _edge;
 };
 
 #endif // GRAPHICSLINE_H

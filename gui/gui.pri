@@ -19,3 +19,6 @@ FORMS += \
     $$PWD/mainwindow.ui \
     $$PWD/algorithmdialog.ui \
     $$PWD/settingsdialog.ui
+
+RESOURCES += \
+    $$PWD/res.qrc

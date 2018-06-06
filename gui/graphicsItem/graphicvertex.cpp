@@ -14,10 +14,7 @@ GraphicVertex::GraphicVertex(QGraphicsItem* parent)
     , _rect(0, 0, 30, 30)
     , _vertex(nullptr)
 {
-//    setCursor(Qt::OpenHandCursor);
-//    setAcceptedMouseButtons(Qt::LeftButton);
     setFlag(QGraphicsItem::ItemIsMovable);
-
     setZValue(100);
 }
 

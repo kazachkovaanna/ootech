@@ -6,13 +6,13 @@
 #include <QMetaType>
 #include <QStandardItemModel>
 
-QPen SettingsDialog::defaultPen(Qt::black, 2);
-QPen SettingsDialog::defaultSelectedPen(QBrush(Qt::red), 2, Qt::DashLine);
+QPen SettingsDialog::defaultPen(Qt::black);
+QPen SettingsDialog::defaultSelectedPen(QBrush(Qt::red), 1, Qt::DashLine);
 QBrush SettingsDialog::defaultBrush(Qt::lightGray);
 QBrush SettingsDialog::defaultSelectedBrush(Qt::gray);
 QFont SettingsDialog::defaultFont("Arial", 10);
 
-QString toString(Qt::PenStyle style)
+static QString toString(Qt::PenStyle style)
 {
     switch (style) {
     case Qt::NoPen:
@@ -34,7 +34,7 @@ QString toString(Qt::PenStyle style)
     }
 }
 
-QString toString(Qt::BrushStyle style)
+static QString toString(Qt::BrushStyle style)
 {
     switch (style) {
     case Qt::NoBrush:       return QObject::trUtf8("NoBrush");
@@ -60,6 +60,46 @@ QString toString(Qt::BrushStyle style)
     return QObject::trUtf8("Unknown");
 }
 
+static void initializePen(QComboBox* combobox)
+{
+    combobox->addItem(toString(Qt::NoPen), qVariantFromValue(Qt::NoPen));
+    combobox->addItem(toString(Qt::SolidLine), qVariantFromValue(Qt::SolidLine));
+    combobox->addItem(toString(Qt::DashLine), qVariantFromValue(Qt::DashLine));
+    combobox->addItem(toString(Qt::DotLine), qVariantFromValue(Qt::DotLine));
+    combobox->addItem(toString(Qt::DashDotLine), qVariantFromValue(Qt::DashDotLine));
+    combobox->addItem(toString(Qt::DashDotDotLine), qVariantFromValue(Qt::DashDotDotLine));
+    combobox->addItem(toString(Qt::CustomDashLine), qVariantFromValue(Qt::CustomDashLine));
+}
+
+static void initializeBrush(QComboBox* combobox)
+{
+    combobox->addItem(toString(Qt::NoBrush), qVariantFromValue(Qt::NoBrush));
+    combobox->addItem(toString(Qt::SolidPattern), qVariantFromValue(Qt::SolidPattern));
+    combobox->addItem(toString(Qt::Dense1Pattern), qVariantFromValue(Qt::Dense1Pattern));
+    combobox->addItem(toString(Qt::Dense2Pattern), qVariantFromValue(Qt::Dense2Pattern));
+    combobox->addItem(toString(Qt::Dense3Pattern), qVariantFromValue(Qt::Dense3Pattern));
+    combobox->addItem(toString(Qt::Dense4Pattern), qVariantFromValue(Qt::Dense4Pattern));
+    combobox->addItem(toString(Qt::Dense5Pattern), qVariantFromValue(Qt::Dense5Pattern));
+    combobox->addItem(toString(Qt::Dense6Pattern), qVariantFromValue(Qt::Dense6Pattern));
+    combobox->addItem(toString(Qt::Dense7Pattern), qVariantFromValue(Qt::Dense7Pattern));
+    combobox->addItem(toString(Qt::HorPattern), qVariantFromValue(Qt::HorPattern));
+    combobox->addItem(toString(Qt::VerPattern), qVariantFromValue(Qt::VerPattern));
+    combobox->addItem(toString(Qt::CrossPattern), qVariantFromValue(Qt::CrossPattern));
+    combobox->addItem(toString(Qt::BDiagPattern), qVariantFromValue(Qt::BDiagPattern));
+    combobox->addItem(toString(Qt::FDiagPattern), qVariantFromValue(Qt::FDiagPattern));
+    combobox->addItem(toString(Qt::DiagCrossPattern), qVariantFromValue(Qt::DiagCrossPattern));
+    combobox->addItem(toString(Qt::LinearGradientPattern), qVariantFromValue(Qt::LinearGradientPattern));
+    combobox->addItem(toString(Qt::RadialGradientPattern), qVariantFromValue(Qt::RadialGradientPattern));
+    combobox->addItem(toString(Qt::ConicalGradientPattern), qVariantFromValue(Qt::ConicalGradientPattern));
+    combobox->addItem(toString(Qt::TexturePattern), qVariantFromValue(Qt::TexturePattern));
+
+    QStandardItemModel* model = qobject_cast<QStandardItemModel*>(combobox->model());
+    for (int i = 15; i < 19; i++) {
+        QStandardItem* item = model->item(i);
+        item->setFlags(Qt::NoItemFlags);
+    }
+}
+
 SettingsDialog::SettingsDialog(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::SettingsDialog)
@@ -77,42 +117,17 @@ SettingsDialog::SettingsDialog(QWidget *parent)
     qRegisterMetaType<Qt::PenStyle>("Qt::PenStyle");
     qRegisterMetaType<Qt::BrushStyle>("Qt::BrushStyle");
 
-    ui->penType->addItem(toString(Qt::NoPen), qVariantFromValue(Qt::NoPen));
-    ui->penType->addItem(toString(Qt::SolidLine), qVariantFromValue(Qt::SolidLine));
-    ui->penType->addItem(toString(Qt::DashLine), qVariantFromValue(Qt::DashLine));
-    ui->penType->addItem(toString(Qt::DotLine), qVariantFromValue(Qt::DotLine));
-    ui->penType->addItem(toString(Qt::DashDotLine), qVariantFromValue(Qt::DashDotLine));
-    ui->penType->addItem(toString(Qt::DashDotDotLine), qVariantFromValue(Qt::DashDotDotLine));
-    ui->penType->addItem(toString(Qt::CustomDashLine), qVariantFromValue(Qt::CustomDashLine));
+    initializePen(ui->penStyle);
+    initializePen(ui->selectedPenStyle);
 
-    ui->brushType->addItem(toString(Qt::NoBrush), qVariantFromValue(Qt::NoBrush));
-    ui->brushType->addItem(toString(Qt::SolidPattern), qVariantFromValue(Qt::SolidPattern));
-    ui->brushType->addItem(toString(Qt::Dense1Pattern), qVariantFromValue(Qt::Dense1Pattern));
-    ui->brushType->addItem(toString(Qt::Dense2Pattern), qVariantFromValue(Qt::Dense2Pattern));
-    ui->brushType->addItem(toString(Qt::Dense3Pattern), qVariantFromValue(Qt::Dense3Pattern));
-    ui->brushType->addItem(toString(Qt::Dense4Pattern), qVariantFromValue(Qt::Dense4Pattern));
-    ui->brushType->addItem(toString(Qt::Dense5Pattern), qVariantFromValue(Qt::Dense5Pattern));
-    ui->brushType->addItem(toString(Qt::Dense6Pattern), qVariantFromValue(Qt::Dense6Pattern));
-    ui->brushType->addItem(toString(Qt::Dense7Pattern), qVariantFromValue(Qt::Dense7Pattern));
-    ui->brushType->addItem(toString(Qt::HorPattern), qVariantFromValue(Qt::HorPattern));
-    ui->brushType->addItem(toString(Qt::VerPattern), qVariantFromValue(Qt::VerPattern));
-    ui->brushType->addItem(toString(Qt::CrossPattern), qVariantFromValue(Qt::CrossPattern));
-    ui->brushType->addItem(toString(Qt::BDiagPattern), qVariantFromValue(Qt::BDiagPattern));
-    ui->brushType->addItem(toString(Qt::FDiagPattern), qVariantFromValue(Qt::FDiagPattern));
-    ui->brushType->addItem(toString(Qt::DiagCrossPattern), qVariantFromValue(Qt::DiagCrossPattern));
-    ui->brushType->addItem(toString(Qt::LinearGradientPattern), qVariantFromValue(Qt::LinearGradientPattern));
-    ui->brushType->addItem(toString(Qt::RadialGradientPattern), qVariantFromValue(Qt::RadialGradientPattern));
-    ui->brushType->addItem(toString(Qt::ConicalGradientPattern), qVariantFromValue(Qt::ConicalGradientPattern));
-    ui->brushType->addItem(toString(Qt::TexturePattern), qVariantFromValue(Qt::TexturePattern));
+    initializeBrush(ui->brushStyle);
+    initializeBrush(ui->selectedBrushStyle);
 
-    QStandardItemModel* model = qobject_cast<QStandardItemModel*>(ui->brushType->model());
-    for (int i = 15; i < 19; i++) {
-        QStandardItem* item = model->item(i);
-        item->setFlags(Qt::NoItemFlags);
-    }
+    ui->penStyle->setCurrentText(toString(_pen.style()));
+    ui->selectedPenStyle->setCurrentText(toString(_selectedPen.style()));
 
-    ui->penType->setCurrentText(toString(_pen.style()));
-    ui->brushType->setCurrentText(toString(_brush.style()));
+    ui->brushStyle->setCurrentText(toString(_brush.style()));
+    ui->selectedBrushStyle->setCurrentText(toString(_selectedBrush.style()));
 }
 
 SettingsDialog::~SettingsDialog()
@@ -130,8 +145,11 @@ void SettingsDialog::load(const QSettings& settings)
 
     _font = settings.value("font", defaultFont).value<QFont>();
 
-    ui->penType->setCurrentText(toString(_pen.style()));
-    ui->brushType->setCurrentText(toString(_brush.style()));
+    ui->penStyle->setCurrentText(toString(_pen.style()));
+    ui->selectedPenStyle->setCurrentText(toString(_selectedPen.style()));
+
+    ui->brushStyle->setCurrentText(toString(_brush.style()));
+    ui->selectedBrushStyle->setCurrentText(toString(_selectedBrush.style()));
 }
 
 void SettingsDialog::save(QSettings& settings)
@@ -197,12 +215,40 @@ void SettingsDialog::on_font_clicked()
     }
 }
 
-void SettingsDialog::on_penType_activated(int index)
+void SettingsDialog::on_penStyle_activated(int index)
 {
-    _pen.setStyle(qvariant_cast<Qt::PenStyle>(ui->penType->itemData(index)));
+    _pen.setStyle(qvariant_cast<Qt::PenStyle>(ui->penStyle->itemData(index)));
 }
 
-void SettingsDialog::on_brushType_activated(int index)
+void SettingsDialog::on_brushStyle_activated(int index)
 {
-    _brush.setStyle(qvariant_cast<Qt::BrushStyle>(ui->brushType->itemData(index)));
+    _brush.setStyle(qvariant_cast<Qt::BrushStyle>(ui->brushStyle->itemData(index)));
+}
+
+void SettingsDialog::on_selectedPenStyle_activated(int index)
+{
+    _selectedPen.setStyle(qvariant_cast<Qt::PenStyle>(ui->selectedPenStyle->itemData(index)));
+}
+
+void SettingsDialog::on_selectedBrushStyle_activated(int index)
+{
+    _selectedBrush.setStyle(qvariant_cast<Qt::BrushStyle>(ui->selectedBrushStyle->itemData(index)));
+}
+
+void SettingsDialog::on_selectedPenColor_clicked()
+{
+    QColorDialog dialog(_selectedPen.color(), this);
+
+    if (dialog.exec() == QColorDialog::Accepted) {
+        _selectedPen.setColor(dialog.selectedColor());
+    }
+}
+
+void SettingsDialog::on_selectedBrushColor_clicked()
+{
+    QColorDialog dialog(_selectedBrush.color(), this);
+
+    if (dialog.exec() == QColorDialog::Accepted) {
+        _selectedBrush.setColor(dialog.selectedColor());
+    }
 }

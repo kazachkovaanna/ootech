@@ -16,7 +16,17 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <widget class="GraphicsView" name="graphicsView"/>
+     <widget class="GraphicsView" name="graphicsView">
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+      <property name="contextMenuPolicy">
+       <enum>Qt::NoContextMenu</enum>
+      </property>
+      <property name="acceptDrops">
+       <bool>false</bool>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -68,9 +78,9 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionViewMode"/>
    <addaction name="actionAddVertexMode"/>
    <addaction name="actionAddEdgeMode"/>
+   <addaction name="actionAlgorithm"/>
   </widget>
   <action name="actionOpen">
    <property name="text">
@@ -117,26 +127,13 @@
     <string>Ctrl+H</string>
    </property>
   </action>
-  <action name="actionViewMode">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>ViewMode</string>
-   </property>
-   <property name="toolTip">
-    <string>Просмотр мультиграфа</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+1</string>
-   </property>
-  </action>
   <action name="actionAddVertexMode">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/pictures/node_edit.png</normaloff>:/pictures/node_edit.png</iconset>
    </property>
    <property name="text">
     <string>AddVertexMode</string>
@@ -149,6 +146,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/pictures/edge_edit.png</normaloff>:/pictures/edge_edit.png</iconset>
+   </property>
    <property name="text">
     <string>AddEdgeMode</string>
    </property>
@@ -157,6 +158,14 @@
    </property>
   </action>
   <action name="actionAlgorithm">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="res.qrc">
+     <normaloff>:/pictures/cost.png</normaloff>
+     <normalon>:/pictures/cost_selected.png</normalon>:/pictures/cost.png</iconset>
+   </property>
    <property name="text">
     <string>Algorithm</string>
    </property>
@@ -169,6 +178,8 @@
    <header>graphicsview.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="res.qrc"/>
+ </resources>
  <connections/>
 </ui>

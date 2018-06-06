@@ -13,7 +13,8 @@ public:
     enum GraphicsMode {
         ViewMode,
         EditVertexMode,
-        EditEdgeMode
+        EditEdgeMode,
+        ViewCostMode
     };
 
 public:
@@ -49,10 +50,16 @@ protected:
     template <typename T>
     QList<T*> getItems(const QPointF& point) const;
 
+    friend QDataStream& operator<<(QDataStream& stream, const GraphicsView& view);
+    friend QDataStream& operator>>(QDataStream& stream, GraphicsView& view);
+
 protected:
     GraphicsMode _graphicsMode;
     GraphicVertex* _selectedItem;
     Sence::Graph<QString, int> _graph;
 };
+
+QDataStream& operator<<(QDataStream& stream, const GraphicsView& view);
+QDataStream& operator>>(QDataStream& stream, GraphicsView& view);
 
 #endif // GRAPHICSVIEW_H

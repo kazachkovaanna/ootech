@@ -43,12 +43,18 @@ public:
 
 private slots:
     void on_penColor_clicked();
+    void on_selectedPenColor_clicked();
+
     void on_brushColor_clicked();
+    void on_selectedBrushColor_clicked();
+
     void on_font_clicked();
 
-    void on_penType_activated(int index);
+    void on_penStyle_activated(int index);
+    void on_selectedPenStyle_activated(int index);
 
-    void on_brushType_activated(int index);
+    void on_brushStyle_activated(int index);
+    void on_selectedBrushStyle_activated(int index);
 
 private:
     Ui::SettingsDialog *ui;

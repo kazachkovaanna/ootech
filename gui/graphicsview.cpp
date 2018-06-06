@@ -2,6 +2,7 @@
 #include "abstractitem.h"
 #include "graphicsline.h"
 #include "graphicvertex.h"
+#include "exception.h"
 
 #include <QDebug>
 #include <QResizeEvent>
@@ -133,15 +134,13 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent* event)
 
     Sence::Edge<int>* edge = new Sence::Edge<int>;
 
-    if (_graph.edgesByVertices(from, to).isEmpty()) {
-        GraphicsLine* line = new GraphicsLine;
-        line->setStart(_selectedItem);
-        line->setEnd(end);
-        line->setEdge({ edge });
+    GraphicsLine* line = new GraphicsLine;
+    line->setStart(_selectedItem);
+    line->setEnd(end);
+    line->setEdge(edge);
 
-        scene()->addItem(line);
-        _graph.add(from, to, edge);
-    }
+    scene()->addItem(line);
+    _graph.add(from, to, edge);
 
     QGraphicsView::mouseReleaseEvent(event);
 }
@@ -168,13 +167,39 @@ T* GraphicsView::getItem(const QPointF& point) const
 template <typename T>
 QList<T*> GraphicsView::getItems(const QPointF& point) const
 {
-    QList<T*> items;
+    QList<T*> _items;
 
     for (QGraphicsItem* item : items(point.toPoint())) {
         if (T* i = dynamic_cast<T*>(item)) {
-            items.append(i);
+            _items.append(i);
         }
     }
 
-    return items;
+    return _items;
+}
+
+QDataStream &operator<<(QDataStream &stream, const GraphicsView &view)
+{
+    stream.resetStatus();
+
+    stream << setVersion(QDataStream::Qt_5_10);
+    stream << view._graph;
+
+    return stream;
+}
+
+QDataStream &operator>>(QDataStream &stream, GraphicsView &view)
+{
+    stream.startTransaction();
+
+    stream << setVersion(QDataStream::Qt_5_10);
+    stream >> view._graph;
+
+    if (!stream.commitTransaction()) {
+        QString message("Can't deserialize graphics scene.");
+        qWarning() << Q_FUNC_INFO << message;
+        throw Sence::DeserializeException(message);
+    }
+
+    return stream;
 }

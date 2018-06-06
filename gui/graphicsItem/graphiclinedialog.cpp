@@ -23,12 +23,12 @@ void GraphicLineDialog::setTooltip(const QString& tooltip)
     ui->tooltip->setText(tooltip);
 }
 
-QList<int> GraphicLineDialog::getCosts() const
+int GraphicLineDialog::getCost() const
 {
-    return { ui->cost->value() };
+    return ui->cost->value();
 }
 
-void GraphicLineDialog::setCosts(const QList<int>& costs)
+void GraphicLineDialog::setCost(int cost)
 {
-    ui->cost->setValue(costs[0]);
+    ui->cost->setValue(cost);
 }
