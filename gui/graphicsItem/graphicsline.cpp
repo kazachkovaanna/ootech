@@ -1,4 +1,5 @@
 #include "graphicsline.h"
+#include <graphicvertex.h>
 #include "graph.h"
 #include "graphiclinedialog.h"
 
@@ -11,11 +12,12 @@ GraphicsLine::GraphicsLine(QGraphicsItem* parent)
     : AbstractItem(parent)
     , _start(nullptr)
     , _end(nullptr)
+    , _edge(nullptr)
 {
     setZValue(450);
 }
 
-void GraphicsLine::setStart(AbstractItem* start)
+void GraphicsLine::setStart(GraphicVertex* start, bool changeControlPoint)
 {
     if (_start) {
         disconnect(_start, &QGraphicsObject::xChanged, this, &GraphicsLine::fullUpdate);
@@ -24,19 +26,21 @@ void GraphicsLine::setStart(AbstractItem* start)
 
     prepareGeometryChange();
     _start = start;
-    update();
 
     if (_start) {
+        _startUuid = _start->getUuid();
         connect(_start, &QGraphicsObject::xChanged, this, &GraphicsLine::fullUpdate);
         connect(_start, &QGraphicsObject::yChanged, this, &GraphicsLine::fullUpdate);
     }
 
-    if (_start && _end) {
+    if (_start && _end && changeControlPoint) {
         _controlPoint = (_start->getCenter() + _end->getCenter()) / 2;
     }
+
+    update();
 }
 
-void GraphicsLine::setEnd(AbstractItem* end)
+void GraphicsLine::setEnd(GraphicVertex* end,  bool changeControlPoint)
 {
     if (_end) {
         disconnect(_end, &QGraphicsObject::xChanged, this, &GraphicsLine::fullUpdate);
@@ -45,16 +49,18 @@ void GraphicsLine::setEnd(AbstractItem* end)
 
     prepareGeometryChange();
     _end = end;
-    update();
 
     if (_end) {
+        _endUuid = _end->getUuid();
         connect(_end, &QGraphicsObject::xChanged, this, &GraphicsLine::fullUpdate);
         connect(_end, &QGraphicsObject::yChanged, this, &GraphicsLine::fullUpdate);
     }
 
-    if (_start && _end) {
+    if (_start && _end && changeControlPoint) {
         _controlPoint = (_start->getCenter() + _end->getCenter()) / 2;
     }
+
+    update();
 }
 
 QPainterPath GraphicsLine::shape() const
@@ -87,6 +93,9 @@ QPointF GraphicsLine::getCenter() const
 void GraphicsLine::setEdge(Sence::Edge<int>* edge)
 {
     _edge = edge;
+    if (_edge)
+        _edgeUuid = _edge->getUuid();
+
     update();
 }
 
@@ -94,11 +103,13 @@ void GraphicsLine::showSettings()
 {
     GraphicLineDialog d;
     d.setTooltip(toolTip());
-    d.setCost(_edge->getData());
+    if (_edge)
+        d.setCost(_edge->getData());
 
     if (GraphicLineDialog::Accepted == d.exec()) {
         setToolTip(d.getTooltip());
-        _edge->setData(d.getCost());
+        if (_edge)
+            _edge->setData(d.getCost());
         update();
     }
 }
@@ -115,4 +126,39 @@ void GraphicsLine::fullUpdate()
 {
     prepareGeometryChange();
     update();
+}
+
+QDataStream& operator<<(QDataStream& stream, GraphicsLine* line)
+{
+    stream.resetStatus();
+
+    stream << line->_uuid;
+    stream << line->_startUuid;
+    stream << line->_endUuid;
+    stream << line->_edgeUuid;
+    stream << line->_controlPoint;
+    stream << line->toolTip();
+
+    return stream;
+}
+
+QDataStream &operator>>(QDataStream &stream, GraphicsLine *&line)
+{
+    stream.startTransaction();
+
+    line = new GraphicsLine;
+    stream >> line->_uuid;
+    stream >> line->_startUuid;
+    stream >> line->_endUuid;
+    stream >> line->_edgeUuid;
+    stream >> line->_controlPoint;
+    QString tooltip;
+    stream >> tooltip;
+    line->setToolTip(tooltip);
+
+    if (!stream.commitTransaction()) {
+
+    }
+
+    return stream;
 }

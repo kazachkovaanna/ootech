@@ -47,8 +47,14 @@ protected:
     template <typename T>
     T* getItem(const QPointF& point) const;
 
+    template<typename T>
+    T* getItem(const QString& uuid) const;
+
     template <typename T>
     QList<T*> getItems(const QPointF& point) const;
+
+    template <typename T>
+    QList<T*> getItems() const;
 
     friend QDataStream& operator<<(QDataStream& stream, const GraphicsView& view);
     friend QDataStream& operator>>(QDataStream& stream, GraphicsView& view);

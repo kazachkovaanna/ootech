@@ -164,6 +164,19 @@ T* GraphicsView::getItem(const QPointF& point) const
     return nullptr;
 }
 
+template<typename T>
+T *GraphicsView::getItem(const QString &uuid) const
+{
+    for (QGraphicsItem* item : items()) {
+        T* i = dynamic_cast<T*>(item);
+        if (i && i->getUuid() == uuid) {
+            return i;
+        }
+    }
+
+    return nullptr;
+}
+
 template <typename T>
 QList<T*> GraphicsView::getItems(const QPointF& point) const
 {
@@ -178,12 +191,28 @@ QList<T*> GraphicsView::getItems(const QPointF& point) const
     return _items;
 }
 
+template<typename T>
+QList<T*> GraphicsView::getItems() const
+{
+    QList<T*> _items;
+
+    for (QGraphicsItem* item : items()) {
+        if (T* i = dynamic_cast<T*>(item)) {
+            _items.append(i);
+        }
+    }
+
+    return _items;
+}
+
 QDataStream &operator<<(QDataStream &stream, const GraphicsView &view)
 {
     stream.resetStatus();
 
     stream << setVersion(QDataStream::Qt_5_10);
     stream << view._graph;
+    stream << view.getItems<GraphicVertex>();
+    stream << view.getItems<GraphicsLine>();
 
     return stream;
 }
@@ -193,13 +222,39 @@ QDataStream &operator>>(QDataStream &stream, GraphicsView &view)
     stream.startTransaction();
 
     stream << setVersion(QDataStream::Qt_5_10);
-    stream >> view._graph;
+    Sence::Graph<QString, int> graph;
+    stream >> graph;
+
+    QList<GraphicVertex*> vertices;
+    stream >> vertices;
+
+    QList<GraphicsLine*> lines;
+    stream >> lines;
 
     if (!stream.commitTransaction()) {
         QString message("Can't deserialize graphics scene.");
         qWarning() << Q_FUNC_INFO << message;
         throw Sence::DeserializeException(message);
     }
+
+    view.scene()->clear();
+
+    for (GraphicVertex* item : vertices) {
+        Sence::Vertex<QString>* v = graph.getVertex(item->getVertexUuid());
+        item->setVertex(v);
+        view.scene()->addItem(item);
+    }
+
+    for (GraphicsLine* item : lines) {
+        Sence::Edge<int>* e = graph.getEdge(item->getEdgeUuid());
+        item->setEdge(e);
+        item->setStart(view.getItem<GraphicVertex>(item->getStartUuid()), false);
+        item->setEnd(view.getItem<GraphicVertex>(item->getEndUuid()), false);
+        view.scene()->addItem(item);
+        item->update();
+    }
+
+    view._graph = graph;
 
     return stream;
 }

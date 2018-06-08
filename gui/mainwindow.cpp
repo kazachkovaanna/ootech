@@ -6,6 +6,10 @@
 #include "ui_mainwindow.h"
 #include "settingsdialog.h"
 
+#include <QFileDialog>
+#include <QFile>
+#include <QMessageBox>
+
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -30,6 +34,21 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_actionOpen_triggered()
 {
+    QString filename = QFileDialog::getOpenFileName(this);
+    if (filename.isEmpty())
+        return;
+
+    QFile f(filename);
+    if (!f.open(QFile::ReadOnly)) {
+        QString title("Ошибка открытия");
+        QString message("Не удалось открыть фаил на чтение.");
+
+        QMessageBox::warning(this, title, message);
+        return;
+    }
+
+    QDataStream ds(&f);
+    ds >> *ui->graphicsView;
 }
 
 void MainWindow::on_actionSave_triggered()
@@ -38,6 +57,21 @@ void MainWindow::on_actionSave_triggered()
 
 void MainWindow::on_actionSave_as_triggered()
 {
+    QString filename = QFileDialog::getSaveFileName(this);
+    if (filename.isEmpty())
+        return;
+
+    QFile f(filename);
+    if (!f.open(QFile::WriteOnly)) {
+        QString title("Ошибка сохранения");
+        QString message("Не удалось открыть фаил на запись.");
+
+        QMessageBox::warning(this, title, message);
+        return;
+    }
+
+    QDataStream ds(&f);
+    ds << *ui->graphicsView;
 }
 
 void MainWindow::on_actionExit_triggered()

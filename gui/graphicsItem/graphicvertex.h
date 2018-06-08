@@ -18,11 +18,20 @@ public:
     inline Sence::Vertex<QString>* getVertex() const { return _vertex; }
     void setVertex(Sence::Vertex<QString>* vertex);
 
+    inline QString getVertexUuid() const { return _vertexUuid; }
+
     virtual void showSettings() override;
+
+    friend QDataStream& operator<<(QDataStream& stream, GraphicVertex* vertex);
+    friend QDataStream& operator>>(QDataStream& stream, GraphicVertex*& vertex);
 
 protected:
     QRectF _rect;
     Sence::Vertex<QString>* _vertex;
+    QString _vertexUuid;
 };
+
+QDataStream& operator<<(QDataStream& stream, GraphicVertex* vertex);
+QDataStream& operator>>(QDataStream& stream, GraphicVertex*& vertex);
 
 #endif // GRAPHICVERTEX_H

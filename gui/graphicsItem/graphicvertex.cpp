@@ -38,6 +38,8 @@ QPointF GraphicVertex::getCenter() const
 void GraphicVertex::setVertex(Sence::Vertex<QString>* vertex)
 {
     _vertex = vertex;
+    if (_vertex)
+        _vertexUuid = vertex->getUuid();
     update();
 }
 
@@ -52,4 +54,39 @@ void GraphicVertex::showSettings()
         setToolTip(d.getTooltip());
         update();
     }
+}
+
+QDataStream &operator<<(QDataStream &stream, GraphicVertex *vertex)
+{
+    stream.resetStatus();
+
+    stream << vertex->_uuid;
+    stream << vertex->_vertexUuid;
+    stream << vertex->_rect;
+    stream << vertex->pos();
+    stream << vertex->toolTip();
+
+    return stream;
+}
+
+QDataStream &operator>>(QDataStream &stream, GraphicVertex *&vertex)
+{
+    stream.startTransaction();
+
+    vertex = new GraphicVertex;
+    stream >> vertex->_uuid;
+    stream >> vertex->_vertexUuid;
+    stream >> vertex->_rect;
+    QPointF pos;
+    stream >> pos;
+    vertex->setPos(pos);
+    QString tooltip;
+    stream >> tooltip;
+    vertex->setToolTip(tooltip);
+
+    if (!stream.commitTransaction()) {
+
+    }
+
+    return stream;
 }

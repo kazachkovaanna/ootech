@@ -164,7 +164,7 @@ public:
     }
 
     inline Vertex<V>* getVertex(const QString& uuid) { return _vertices.value(uuid); }
-    inline Vertex<V>* getEdge(const QString& uuid) { return _edges.value(uuid); }
+    inline Edge<E>* getEdge(const QString& uuid) { return _edges.value(uuid); }
 
     class iteratorE {
         iteratorE(const QList<Edge<E>*>& edges, bool begin) noexcept
