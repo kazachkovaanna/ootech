@@ -1,7 +1,7 @@
 #include "graphicsline.h"
-#include <graphicvertex.h>
+#include "graphicvertex.h"
 #include "graph.h"
-#include "graphiclinedialog.h"
+#include "linesettings.h"
 
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
@@ -99,19 +99,10 @@ void GraphicsLine::setEdge(Sence::Edge<int>* edge)
     update();
 }
 
-void GraphicsLine::showSettings()
+QWidget* GraphicsLine::getSettingsForm()
 {
-    GraphicLineDialog d;
-    d.setTooltip(toolTip());
-    if (_edge)
-        d.setCost(_edge->getData());
-
-    if (GraphicLineDialog::Accepted == d.exec()) {
-        setToolTip(d.getTooltip());
-        if (_edge)
-            _edge->setData(d.getCost());
-        update();
-    }
+    LineSettings* settings = new LineSettings;
+    return settings;
 }
 
 void GraphicsLine::mouseMoveEvent(QGraphicsSceneMouseEvent *event)

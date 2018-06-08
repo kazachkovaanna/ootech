@@ -20,7 +20,7 @@ public:
 
     inline QString getVertexUuid() const { return _vertexUuid; }
 
-    virtual void showSettings() override;
+    virtual QWidget* getSettingsForm() override;
 
     friend QDataStream& operator<<(QDataStream& stream, GraphicVertex* vertex);
     friend QDataStream& operator>>(QDataStream& stream, GraphicVertex*& vertex);

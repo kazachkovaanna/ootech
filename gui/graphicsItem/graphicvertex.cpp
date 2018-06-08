@@ -1,6 +1,6 @@
 #include "graphicvertex.h"
 #include "graph.h"
-#include "graphicsvertexdialog.h"
+#include "vertexsettings.h"
 
 #include <QCursor>
 #include <QDebug>
@@ -43,17 +43,10 @@ void GraphicVertex::setVertex(Sence::Vertex<QString>* vertex)
     update();
 }
 
-void GraphicVertex::showSettings()
+QWidget *GraphicVertex::getSettingsForm()
 {
-    GraphicsVertexDialog d;
-    d.setName(_vertex->getData());
-    d.setTooltip(toolTip());
-
-    if (GraphicsVertexDialog::Accepted == d.exec()) {
-        _vertex->setData(d.getName());
-        setToolTip(d.getTooltip());
-        update();
-    }
+    VertexSettings* settings = new VertexSettings;
+    return settings;
 }
 
 QDataStream &operator<<(QDataStream &stream, GraphicVertex *vertex)

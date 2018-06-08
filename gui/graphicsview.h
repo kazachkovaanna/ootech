@@ -4,11 +4,14 @@
 #include <QGraphicsView>
 
 #include "graph.h"
+#include "abstractitem.h"
 
 class QResizeEvent;
 class GraphicVertex;
 
 class GraphicsView : public QGraphicsView {
+    Q_OBJECT
+
 public:
     enum GraphicsMode {
         ViewMode,
@@ -56,8 +59,16 @@ protected:
     template <typename T>
     QList<T*> getItems() const;
 
+    void addItem(AbstractItem* item);
+
     friend QDataStream& operator<<(QDataStream& stream, const GraphicsView& view);
     friend QDataStream& operator>>(QDataStream& stream, GraphicsView& view);
+
+protected slots:
+    void onItemSlected();
+
+signals:
+    void itemSelected(AbstractItem*);
 
 protected:
     GraphicsMode _graphicsMode;

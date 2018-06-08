@@ -14,8 +14,8 @@
    <string>Ёлки</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
      <widget class="GraphicsView" name="graphicsView">
       <property name="focusPolicy">
        <enum>Qt::NoFocus</enum>
@@ -81,6 +81,12 @@
    <addaction name="actionAddVertexMode"/>
    <addaction name="actionAddEdgeMode"/>
    <addaction name="actionAlgorithm"/>
+  </widget>
+  <widget class="QDockWidget" name="settingsDocWidget">
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="settingsWidget"/>
   </widget>
   <action name="actionOpen">
    <property name="text">

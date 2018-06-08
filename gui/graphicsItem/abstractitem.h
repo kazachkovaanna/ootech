@@ -9,6 +9,8 @@
 #include <QPointF>
 
 class AbstractItem : public QGraphicsObject {
+    Q_OBJECT
+
 public:
     AbstractItem(QGraphicsItem* parent = nullptr);
 
@@ -21,7 +23,8 @@ public:
     inline QString getUuid() const { return _uuid; }
 
     virtual QPointF getCenter() const = 0;
-    virtual void showSettings() = 0;
+
+    virtual QWidget* getSettingsForm() = 0;
 
 public:
     static void setPen(const QPen& pen);
@@ -39,7 +42,9 @@ public:
 protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-    virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
+
+signals:
+    void selected();
 
 protected:
     static QPen _pen;

@@ -96,6 +96,7 @@ void GraphicsView::mousePressEvent(QMouseEvent* event)
                 i->setSelected(false);
             }
         }
+        emit itemSelected(nullptr);
         QGraphicsView::mousePressEvent(event);
         return;
     }
@@ -103,7 +104,7 @@ void GraphicsView::mousePressEvent(QMouseEvent* event)
         GraphicVertex* vertex = new GraphicVertex;
         vertex->setPos(event->pos());
         vertex->setVertex(new Sence::Vertex<QString>);
-        scene()->addItem(vertex);
+        addItem(vertex);
         _graph.add(vertex->getVertex());
 
         return;
@@ -139,7 +140,7 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent* event)
     line->setEnd(end);
     line->setEdge(edge);
 
-    scene()->addItem(line);
+    addItem(line);
     _graph.add(from, to, edge);
 
     QGraphicsView::mouseReleaseEvent(event);
@@ -150,6 +151,17 @@ void GraphicsView::mouseDoubleClickEvent(QMouseEvent* event)
     if (ViewMode == _graphicsMode) {
         QGraphicsView::mouseDoubleClickEvent(event);
     }
+}
+
+void GraphicsView::addItem(AbstractItem *item)
+{
+    scene()->addItem(item);
+    connect(item, &AbstractItem::selected, this, &GraphicsView::onItemSlected);
+}
+
+void GraphicsView::onItemSlected()
+{
+    emit itemSelected(qobject_cast<AbstractItem*>(sender()));
 }
 
 template <typename T>
@@ -242,7 +254,7 @@ QDataStream &operator>>(QDataStream &stream, GraphicsView &view)
     for (GraphicVertex* item : vertices) {
         Sence::Vertex<QString>* v = graph.getVertex(item->getVertexUuid());
         item->setVertex(v);
-        view.scene()->addItem(item);
+        view.addItem(item);
     }
 
     for (GraphicsLine* item : lines) {
@@ -250,7 +262,7 @@ QDataStream &operator>>(QDataStream &stream, GraphicsView &view)
         item->setEdge(e);
         item->setStart(view.getItem<GraphicVertex>(item->getStartUuid()), false);
         item->setEnd(view.getItem<GraphicVertex>(item->getEndUuid()), false);
-        view.scene()->addItem(item);
+        view.addItem(item);
         item->update();
     }
 

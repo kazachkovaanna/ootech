@@ -34,7 +34,7 @@ public:
 
     inline QString getEdgeUuid() const { return _edgeUuid; }
 
-    virtual void showSettings() override;
+    virtual QWidget* getSettingsForm() override;
 
 protected:
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;

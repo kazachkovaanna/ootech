@@ -5,16 +5,18 @@ HEADERS += \
     $$PWD/graphicvertex.h \
     $$PWD/graphicsline.h \
     $$PWD/abstractitem.h \
-    $$PWD/graphiclinedialog.h \
-    $$PWD/graphicsvertexdialog.h
+    $$PWD/linesettings.h \
+    $$PWD/vertexsettings.h
 
 SOURCES += \
     $$PWD/graphicvertex.cpp \
     $$PWD/graphicsline.cpp \
     $$PWD/abstractitem.cpp \
-    $$PWD/graphiclinedialog.cpp \
-    $$PWD/graphicsvertexdialog.cpp
+    $$PWD/linesettings.cpp \
+    $$PWD/vertexsettings.cpp
 
 FORMS += \
-    $$PWD/graphiclinedialog.ui \
-    $$PWD/graphicsvertexdialog.ui
+    $$PWD/vertexsettings.ui \
+    $$PWD/linesettings.ui \
+    $$PWD/linesettings.ui \
+    $$PWD/vertexsettings.ui

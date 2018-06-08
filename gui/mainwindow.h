@@ -8,12 +8,17 @@ namespace Ui {
 class MainWindow;
 }
 
+class AbstractItem;
+
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
+
+protected slots:
+    void onItemSelected(AbstractItem* item);
 
 private slots:
     void on_actionOpen_triggered();

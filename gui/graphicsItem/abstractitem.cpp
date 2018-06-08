@@ -61,6 +61,7 @@ void AbstractItem::setFont(const QFont &font)
 
 void AbstractItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    emit selected();
     setCursor(Qt::OpenHandCursor);
     QGraphicsObject::mousePressEvent(event);
 }
@@ -69,10 +70,4 @@ void AbstractItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     setCursor(Qt::PointingHandCursor);
     QGraphicsObject::mouseReleaseEvent(event);
-}
-
-void AbstractItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
-{
-    QGraphicsObject::mouseDoubleClickEvent(event);
-    showSettings();
 }

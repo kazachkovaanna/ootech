@@ -25,11 +25,22 @@ MainWindow::MainWindow(QWidget* parent)
     ui->graphicsView->setBrush(dialog.brush());
     ui->graphicsView->setSelectedBrush(dialog.selectedBrush());
     ui->graphicsView->setFont(dialog.font());
+
+    connect(ui->graphicsView, &GraphicsView::itemSelected, this, &MainWindow::onItemSelected);
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::onItemSelected(AbstractItem *item)
+{
+    if (nullptr == item) {
+        ui->settingsDocWidget->setWidget(ui->settingsWidget);
+    } else {
+        ui->settingsDocWidget->setWidget(item->getSettingsForm());
+    }
 }
 
 void MainWindow::on_actionOpen_triggered()
