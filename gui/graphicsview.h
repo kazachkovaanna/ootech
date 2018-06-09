@@ -2,6 +2,7 @@
 #define GRAPHICSVIEW_H
 
 #include <QGraphicsView>
+#include <QByteArray>
 
 #include "graph.h"
 #include "abstractitem.h"
@@ -59,7 +60,11 @@ protected:
     template <typename T>
     QList<T*> getItems() const;
 
+    void setInfinityCost();
+
     void addItem(AbstractItem* item);
+
+    void fullupdate();
 
     friend QDataStream& operator<<(QDataStream& stream, const GraphicsView& view);
     friend QDataStream& operator>>(QDataStream& stream, GraphicsView& view);
@@ -74,6 +79,7 @@ protected:
     GraphicsMode _graphicsMode;
     GraphicVertex* _selectedItem;
     Sence::Graph<QString, int> _graph;
+    QByteArray _serializedGraph;
 };
 
 QDataStream& operator<<(QDataStream& stream, const GraphicsView& view);

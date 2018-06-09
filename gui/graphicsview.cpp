@@ -3,6 +3,7 @@
 #include "graphicsline.h"
 #include "graphicvertex.h"
 #include "exception.h"
+#include "dijekstra.h"
 
 #include <QDebug>
 #include <QResizeEvent>
@@ -24,6 +25,24 @@ GraphicsView::GraphicsView(QGraphicsScene* scene, QWidget* parent)
 
 void GraphicsView::setGraphicsMode(GraphicsView::GraphicsMode mode)
 {
+    if (_graphicsMode == ViewCostMode) {
+        QDataStream ds(&_serializedGraph, QIODevice::ReadOnly);
+        ds >> *this;
+    }
+
+    if (mode == ViewCostMode) {
+        QDataStream ds(&_serializedGraph, QIODevice::WriteOnly);
+        ds << *this;
+
+        for (AbstractItem* item : getItems<AbstractItem>()) {
+            item->setSelected(false);
+//            item->update();
+        }
+        fullupdate();
+
+        setInfinityCost();
+    }
+
     _graphicsMode = mode;
 }
 
@@ -90,13 +109,14 @@ void GraphicsView::resizeEvent(QResizeEvent* event)
 void GraphicsView::mousePressEvent(QMouseEvent* event)
 {
     switch (_graphicsMode) {
+    case ViewCostMode:
     case ViewMode: {
         for (QGraphicsItem* item : items()) {
             if (auto i = dynamic_cast<AbstractItem*>(item)) {
                 i->setSelected(false);
             }
         }
-        emit itemSelected(nullptr);
+        onItemSlected();
         QGraphicsView::mousePressEvent(event);
         return;
     }
@@ -104,8 +124,8 @@ void GraphicsView::mousePressEvent(QMouseEvent* event)
         GraphicVertex* vertex = new GraphicVertex;
         vertex->setPos(event->pos());
         vertex->setVertex(new Sence::Vertex<QString>);
-        addItem(vertex);
         _graph.add(vertex->getVertex());
+        addItem(vertex);
 
         return;
     }
@@ -140,8 +160,8 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent* event)
     line->setEnd(end);
     line->setEdge(edge);
 
-    addItem(line);
     _graph.add(from, to, edge);
+    addItem(line);
 
     QGraphicsView::mouseReleaseEvent(event);
 }
@@ -153,15 +173,47 @@ void GraphicsView::mouseDoubleClickEvent(QMouseEvent* event)
     }
 }
 
+void GraphicsView::setInfinityCost()
+{
+    for (GraphicVertex* v : getItems<GraphicVertex>()) {
+        v->getVertex()->setData(trUtf8("\u221E"));
+//        v->update();
+    }
+    fullupdate();
+}
+
 void GraphicsView::addItem(AbstractItem *item)
 {
     scene()->addItem(item);
     connect(item, &AbstractItem::selected, this, &GraphicsView::onItemSlected);
 }
 
+void GraphicsView::fullupdate()
+{
+    scene()->update(0, 0, width(), height());
+}
+
 void GraphicsView::onItemSlected()
 {
-    emit itemSelected(qobject_cast<AbstractItem*>(sender()));
+    _selectedItem = qobject_cast<GraphicVertex*>(sender());
+
+    if (ViewCostMode == _graphicsMode) {
+        setInfinityCost();
+
+        if (_selectedItem) {
+            Sence::iteratorD<QString, int> it(_graph, _selectedItem->getVertex());
+            while ((++it).hasNext());
+            for (GraphicVertex* vertex : getItems<GraphicVertex>()) {
+                if (it.cost().contains(vertex->getVertex())) {
+                    vertex->getVertex()->setData(QString::number(it.cost().value(vertex->getVertex())));
+//                    vertex->update();
+                }
+            }
+            fullupdate();
+        }
+    } else {
+        emit itemSelected(qobject_cast<AbstractItem*>(sender()));
+    }
 }
 
 template <typename T>
@@ -263,8 +315,9 @@ QDataStream &operator>>(QDataStream &stream, GraphicsView &view)
         item->setStart(view.getItem<GraphicVertex>(item->getStartUuid()), false);
         item->setEnd(view.getItem<GraphicVertex>(item->getEndUuid()), false);
         view.addItem(item);
-        item->update();
+//        item->update();
     }
+    view.fullupdate();
 
     view._graph = graph;
 

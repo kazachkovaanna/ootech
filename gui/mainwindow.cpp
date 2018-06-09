@@ -36,7 +36,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::onItemSelected(AbstractItem *item)
 {
-    if (nullptr == item) {
+    if (nullptr == item || GraphicsView::ViewCostMode == ui->graphicsView->getGraphicsMode()) {
         ui->settingsDocWidget->setWidget(ui->settingsWidget);
     } else {
         ui->settingsDocWidget->setWidget(item->getSettingsForm());
@@ -139,8 +139,10 @@ void MainWindow::on_actionAlgorithm_triggered(bool checked)
     ui->actionAddEdgeMode->setChecked(false);
     ui->actionAddVertexMode->setChecked(false);
 
-    if (checked)
+    if (checked) {
+        ui->settingsDocWidget->setWidget(ui->settingsWidget);
         ui->graphicsView->setGraphicsMode(GraphicsView::ViewCostMode);
-    else
+    } else {
         ui->graphicsView->setGraphicsMode(GraphicsView::ViewMode);
+    }
 }

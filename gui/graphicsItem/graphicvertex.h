@@ -9,6 +9,8 @@ class Vertex;
 }
 
 class GraphicVertex : public AbstractItem {
+    Q_OBJECT
+
 public:
     GraphicVertex(QGraphicsItem* parent = nullptr);
 
