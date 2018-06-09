@@ -38,7 +38,7 @@
     <widget class="QLineEdit" name="name"/>
    </item>
    <item row="1" column="1">
-    <widget class="QPlainTextEdit" name="tooltip"/>
+    <widget class="QTextEdit" name="tooltip"/>
    </item>
   </layout>
  </widget>

@@ -45,7 +45,7 @@ void GraphicVertex::setVertex(Sence::Vertex<QString>* vertex)
 
 QWidget *GraphicVertex::getSettingsForm()
 {
-    VertexSettings* settings = new VertexSettings;
+    VertexSettings* settings = new VertexSettings(*this);
     return settings;
 }
 

@@ -101,7 +101,7 @@ void GraphicsLine::setEdge(Sence::Edge<int>* edge)
 
 QWidget* GraphicsLine::getSettingsForm()
 {
-    LineSettings* settings = new LineSettings;
+    LineSettings* settings = new LineSettings(*this);
     return settings;
 }
 
