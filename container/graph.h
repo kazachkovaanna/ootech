@@ -104,7 +104,12 @@ template <typename V, typename E>
 class Sence::Graph {
 public:
     Graph() noexcept = default;
-    Graph(const Graph<V, E>& graph) noexcept = default;
+    Graph(const Graph<V, E>& graph) noexcept
+        : _connections(graph._connections)
+        , _edges(graph._edges)
+        , _vertices(graph._vertices)
+    {
+    }
 
     inline bool isEmpty() const noexcept { return _vertices.isEmpty(); }
     inline bool contains(Vertex<V>* vertex) const noexcept { return _vertices.value(vertex->getUuid()) == vertex; }
